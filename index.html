@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For Paige</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ---- palette: candlelit romantic night ---- */
+    --night-1:#241522;     /* deep aubergine */
+    --night-2:#13090f;     /* near-black wine */
+    --gold:#d8ad63;        /* candlelight gold */
+    --gold-soft:#e8c98a;
+    --blush:#dca0a6;       /* soft rose */
+    --paper:#f6efe1;       /* cream stationery */
+    --paper-edge:#e7dcc5;
+    --ink:#3c2f2b;         /* warm ink */
+    --ink-soft:#6a564e;
+    --wax:#8e2d3a;         /* wax-seal crimson */
+    --wax-hi:#b14250;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  html{scroll-behavior:smooth}
+
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(120% 90% at 50% 18%, #3a2233 0%, var(--night-1) 38%, var(--night-2) 100%);
+    color:var(--paper);
+    font-family:'EB Garamond',Georgia,serif;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  canvas#motes{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+  /* faint candlelight bloom behind the envelope */
+  .glow{
+    position:fixed;left:50%;top:34vh;transform:translate(-50%,-50%);
+    width:min(80vw,640px);height:min(80vw,640px);
+    background:radial-gradient(circle, rgba(216,173,99,.20) 0%, rgba(216,173,99,0) 65%);
+    z-index:0;pointer-events:none;filter:blur(6px);
+  }
+
+  /* ---------- the sealed stage ---------- */
+  .stage{
+    position:relative;z-index:2;
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:8vh 24px 12vh;
+  }
+
+  .eyebrow{
+    font-family:'Cormorant Garamond',serif;
+    text-transform:uppercase;letter-spacing:.42em;
+    font-size:.74rem;font-weight:500;
+    color:var(--gold-soft);opacity:.85;
+    margin-bottom:.4em;padding-left:.42em;
+  }
+
+  .name{
+    font-family:'Pinyon Script',cursive;
+    font-size:clamp(3.6rem,12vw,6.4rem);
+    line-height:.9;color:var(--paper);
+    text-shadow:0 2px 30px rgba(220,160,166,.28);
+    margin-bottom:.12em;
+  }
+
+  .surname{
+    font-family:'Cormorant Garamond',serif;
+    text-transform:uppercase;letter-spacing:.34em;
+    font-size:.78rem;color:var(--blush);opacity:.8;
+    padding-left:.34em;margin-bottom:3.4rem;
+  }
+
+  /* ---------- envelope ---------- */
+  .envelope{
+    position:relative;width:min(82vw,340px);aspect-ratio:1.5/1;
+    cursor:pointer;border:none;background:none;padding:0;
+    filter:drop-shadow(0 26px 40px rgba(0,0,0,.45));
+    transition:transform .6s cubic-bezier(.2,.8,.2,1);
+  }
+  .envelope:hover{transform:translateY(-6px)}
+  .envelope:focus-visible{outline:2px solid var(--gold-soft);outline-offset:14px;border-radius:6px}
+
+  .env-body{
+    position:absolute;inset:0;border-radius:6px;
+    background:linear-gradient(155deg,#f2e8d4 0%, #e8dabd 100%);
+    box-shadow:inset 0 0 0 1px rgba(60,47,43,.08);
+    overflow:hidden;
+  }
+  /* the diagonal paper folds of an envelope */
+  .env-body::before,.env-body::after{
+    content:"";position:absolute;top:0;width:52%;height:100%;
+    background:linear-gradient(120deg,rgba(255,255,255,.5),rgba(180,160,120,.18));
+  }
+  .env-body::before{left:0;clip-path:polygon(0 0,100% 50%,0 100%)}
+  .env-body::after{right:0;clip-path:polygon(100% 0,0 50%,100% 100%);
+    background:linear-gradient(240deg,rgba(255,255,255,.5),rgba(180,160,120,.18))}
+
+  /* the letter that peeks/rises out */
+  .peek{
+    position:absolute;left:6%;right:6%;bottom:6%;height:78%;
+    background:var(--paper);border-radius:3px 3px 0 0;
+    box-shadow:0 -6px 18px rgba(0,0,0,.12);
+    transform:translateY(0);transition:transform 1s cubic-bezier(.2,.8,.2,1) .25s;
+    z-index:3;
+  }
+  .peek::before{
+    content:"";position:absolute;left:14%;right:14%;top:26%;height:1px;
+    background:repeating-linear-gradient(to bottom,rgba(106,86,78,.28) 0 1px,transparent 1px 16px);
+    bottom:18%;
+  }
+
+  /* top flap */
+  .flap{
+    position:absolute;left:0;right:0;top:0;height:64%;
+    clip-path:polygon(0 0,100% 0,50% 100%);
+    background:linear-gradient(160deg,#ecdfc6 0%, #ddcaa3 100%);
+    transform-origin:top;transform:rotateX(0deg);
+    transition:transform .7s cubic-bezier(.5,0,.2,1);
+    z-index:5;backface-visibility:hidden;
+  }
+
+  /* wax seal */
+  .seal{
+    position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
+    width:78px;height:78px;border-radius:50%;z-index:6;
+    background:radial-gradient(circle at 38% 32%,var(--wax-hi),var(--wax) 62%,#6c1f29 100%);
+    box-shadow:0 4px 12px rgba(0,0,0,.4),inset 0 2px 6px rgba(255,255,255,.22);
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .45s ease,opacity .45s ease;
+  }
+  .seal::after{
+    content:"";position:absolute;inset:7px;border-radius:50%;
+    border:1px dashed rgba(246,239,225,.35);
+  }
+  .seal span{
+    font-family:'Cormorant Garamond',serif;font-style:italic;
+    font-size:2.1rem;color:var(--paper);
+    text-shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+
+  .hint{
+    margin-top:2.6rem;font-family:'Cormorant Garamond',serif;
+    font-style:italic;font-size:1.06rem;color:var(--gold-soft);
+    letter-spacing:.04em;opacity:.9;
+    animation:breathe 3.4s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:.45}50%{opacity:.95}}
+
+  /* ---------- opened state ---------- */
+  .is-open .flap{transform:rotateX(178deg)}
+  .is-open .seal{transform:translate(-50%,-50%) scale(.6);opacity:0}
+  .is-open .peek{transform:translateY(-118%)}
+  .is-open .hint{opacity:0;pointer-events:none}
+
+  /* ---------- the full letter ---------- */
+  .letter{
+    position:relative;z-index:2;
+    max-width:620px;margin:0 auto;
+    padding:0 26px 16vh;
+    opacity:0;transform:translateY(40px);
+    pointer-events:none;
+    transition:opacity 1.1s ease .15s,transform 1.1s cubic-bezier(.2,.8,.2,1) .15s;
+  }
+  .letter.show{opacity:1;transform:none;pointer-events:auto}
+
+  .sheet{
+    position:relative;
+    background:linear-gradient(180deg,var(--paper) 0%, #f1e7d4 100%);
+    color:var(--ink);
+    border-radius:4px;
+    padding:clamp(38px,7vw,72px) clamp(28px,6vw,64px);
+    box-shadow:0 30px 70px rgba(0,0,0,.5),inset 0 0 0 1px var(--paper-edge);
+  }
+  .sheet::before{ /* deckled top edge accent */
+    content:"";position:absolute;left:0;right:0;top:0;height:3px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+    border-radius:4px 4px 0 0;
+  }
+
+  .salutation{
+    font-family:'Cormorant Garamond',serif;font-style:italic;
+    font-size:clamp(1.8rem,5vw,2.5rem);color:var(--wax);
+    margin-bottom:1.1rem;
+  }
+
+  .sheet p{
+    font-size:clamp(1.05rem,2.4vw,1.22rem);
+    line-height:1.74;color:var(--ink);
+    margin-bottom:1.15rem;
+  }
+  .sheet p:last-of-type{margin-bottom:0}
+
+  .closing{
+    margin-top:2.2rem;font-family:'Cormorant Garamond',serif;
+    font-style:italic;font-size:1.15rem;color:var(--ink-soft);
+  }
+  .sign{
+    font-family:'Pinyon Script',cursive;
+    font-size:clamp(2.4rem,8vw,3.2rem);
+    color:var(--wax);line-height:.9;margin-top:.1em;
+  }
+
+  .footer{
+    text-align:center;margin-top:3.2rem;
+    font-family:'Cormorant Garamond',serif;
+    text-transform:uppercase;letter-spacing:.34em;
+    font-size:.66rem;color:var(--gold-soft);opacity:.55;
+    padding-left:.34em;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition-duration:.001ms !important}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+  <canvas id="motes"></canvas>
+  <div class="glow" aria-hidden="true"></div>
+
+  <main class="stage" id="stage">
+    <p class="eyebrow">A letter written for</p>
+    <h1 class="name">Paige</h1>
+    <p class="surname">Elizabeth&nbsp;Fryer</p>
+
+    <button class="envelope" id="envelope" aria-label="Open your letter">
+      <span class="env-body" aria-hidden="true"></span>
+      <span class="peek" aria-hidden="true"></span>
+      <span class="flap" aria-hidden="true"></span>
+      <span class="seal" aria-hidden="true"><span>P</span></span>
+    </button>
+
+    <p class="hint" id="hint">tap to open</p>
+  </main>
+
+  <section class="letter" id="letter" aria-live="polite">
+    <article class="sheet">
+      <!-- ============================================================ -->
+      <!--  EDIT YOUR MESSAGE BELOW. Keep each paragraph in its own <p>. -->
+      <!-- ============================================================ -->
+      <p class="salutation">My dearest Paige,</p>
+
+      <p>I keep starting this letter and stopping, because there is no clever
+         first line that does justice to what I actually want to say. So I'll
+         say it plainly: meeting you was the best thing to happen to me in a
+         very long time.</p>
+
+      <p>From the very first time we talked, you made all the noise go quiet.
+         You're sharp and funny and impossibly easy to be around, and I've
+         caught myself looking forward to the smallest, most ordinary moments
+         simply because they have you in them.</p>
+
+      <p>I don't know everything that's ahead of us — but I know I want to find
+         out with you. No rush and no script. Just you and me, figuring out the
+         good parts as we go.</p>
+
+      <p>Here's to whatever comes next.</p>
+
+      <p class="closing">Always yours,</p>
+      <!-- EDIT your signature name below -->
+      <p class="sign">David</p>
+      <!-- ============================================================ -->
+    </article>
+    <p class="footer">Made for you &nbsp;&middot;&nbsp; Franklin, Tennessee</p>
+  </section>
+
+<script>
+(function(){
+  /* ---------- candlelight motes ---------- */
+  var canvas=document.getElementById('motes'),ctx=canvas.getContext('2d');
+  var reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var motes=[],W,H;
+  function size(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+  function seed(){
+    motes=[];var n=Math.min(46,Math.round(innerWidth/26));
+    for(var i=0;i<n;i++){
+      motes.push({
+        x:Math.random()*W,y:Math.random()*H,
+        r:Math.random()*1.7+.5,
+        s:Math.random()*.22+.05,
+        a:Math.random()*.5+.15,
+        d:Math.random()*Math.PI*2
+      });
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<motes.length;i++){
+      var m=motes[i];
+      m.y-=m.s; m.x+=Math.sin(m.d+m.y*.012)*.18; m.d+=.002;
+      if(m.y< -6){m.y=H+6;m.x=Math.random()*W;}
+      var tw=m.a*(0.6+0.4*Math.sin(Date.now()*0.001+m.x));
+      ctx.beginPath();ctx.arc(m.x,m.y,m.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(232,201,138,'+tw+')';ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  size();seed();
+  if(!reduce){draw();} else {
+    /* static sprinkle for reduced motion */
+    for(var i=0;i<motes.length;i++){var m=motes[i];
+      ctx.beginPath();ctx.arc(m.x,m.y,m.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(232,201,138,'+m.a*.5+')';ctx.fill();}
+  }
+  addEventListener('resize',function(){size();seed();
+    if(reduce){ctx.clearRect(0,0,W,H);}});
+
+  /* ---------- open the letter ---------- */
+  var env=document.getElementById('envelope'),
+      letter=document.getElementById('letter'),
+      opened=false;
+  function open(){
+    if(opened)return;opened=true;
+    env.classList.add('is-open');
+    env.setAttribute('aria-label','Letter opened');
+    setTimeout(function(){
+      letter.classList.add('show');
+      letter.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+    }, reduce?60:760);
+  }
+  env.addEventListener('click',open);
+})();
+</script>
+</body>
+</html>
