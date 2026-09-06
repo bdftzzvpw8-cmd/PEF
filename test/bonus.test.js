@@ -78,7 +78,7 @@ test('defaults match the agreed rules', () => {
   assert.strictEqual(DEFAULTS.cap, 500);
   assert.strictEqual(DEFAULTS.topPct, 0.20);
   assert.strictEqual(DEFAULTS.minEligible, 10);
-  assert.strictEqual(DEFAULTS.basis, 'abs_pnl');
+  assert.strictEqual(DEFAULTS.basis, 'total_pnl');
 });
 
 test('reports the shortfall when the cap ceilings payout below the pool', () => {
@@ -116,4 +116,39 @@ test('the payload carries the totalled figure alongside the netted one', () => {
   const payload = toPayload(report, { weekStart: '08-31-2026', weekEnd: '09-06-2026' });
   assert.strictEqual(payload.total_volume, 800);
   assert.strictEqual(payload.net_pnl, 0);
+});
+
+test('a client\'s bet types are totalled, not netted, before ranking', () => {
+  const accounts = new Map([
+    // Nearly break-even on the net figure, but 900 of action underneath it.
+    ['SPLIT', { player: 'SPLIT', key: 'SPLIT', pnl: 100, volume: 0,
+                betTypes: { PreMatch: 500, InPlay: -400 } }],
+    ['FLAT',  { player: 'FLAT',  key: 'FLAT',  pnl: 200, volume: 0,
+                betTypes: { PreMatch: 200 } }],
+  ]);
+
+  const totalled = buildBonusReport(accounts, { basis: 'total_pnl', minEligible: 2 });
+  assert.strictEqual(totalled.eligible[0].player, 'SPLIT', 'the busier client leads');
+  assert.strictEqual(totalled.eligible[0].metricValue, 900);
+
+  const netted = buildBonusReport(accounts, { basis: 'abs_pnl', minEligible: 2 });
+  assert.strictEqual(netted.eligible[0].player, 'FLAT', 'netting hides that action');
+});
+
+test('an account with no bet-type breakdown falls back to its net figure', () => {
+  const accounts = new Map([
+    ['LEDGERONLY', { player: 'LEDGERONLY', key: 'LEDGERONLY', pnl: -75, volume: 500 }],
+  ]);
+  const report = buildBonusReport(accounts, { basis: 'total_pnl', minEligible: 1 });
+  assert.strictEqual(report.eligible[0].metricValue, 75);
+});
+
+test('the ranking metrics are all selectable and distinct', () => {
+  const accounts = new Map([
+    ['A', { player: 'A', key: 'A', pnl: 100, volume: 999, betTypes: { PreMatch: 500, InPlay: -400 } }],
+  ]);
+  const value = basis => buildBonusReport(accounts, { basis, minEligible: 1 }).eligible[0].metricValue;
+  assert.strictEqual(value('total_pnl'), 900);
+  assert.strictEqual(value('abs_pnl'), 100);
+  assert.strictEqual(value('wagered'), 999);
 });

@@ -45,7 +45,7 @@ test('the reporting week comes from the transaction dates', () => {
 
 test('bonus leaderboard ranks by volume and excludes the non-wagering account', () => {
   const { players, week } = load();
-  const report = buildBonusReport(players, { basis: 'volume' });
+  const report = buildBonusReport(players, { basis: 'wagered' });
 
   assert.deepStrictEqual(report.active.map(a => a.player), ['CC300', 'BB200', 'AA100', 'DD400']);
   assert.strictEqual(report.inactive.length, 1, 'EE500 has no volume');
@@ -65,7 +65,7 @@ test('bonus leaderboard ranks by volume and excludes the non-wagering account', 
   const payload = toPayload(report, week);
   assert.strictEqual(payload.week_end, '09-06-2026');
   assert.strictEqual(payload.volume_threshold, 60);
-  assert.strictEqual(payload.threshold_basis, 'volume');
+  assert.strictEqual(payload.threshold_basis, 'wagered');
   assert.strictEqual(payload.bonuses[0].account, 'CC300');
 });
 
@@ -128,7 +128,7 @@ test('the payload records which metric set the cutoff', () => {
 test('ranking basis changes who leads the board', () => {
   const { accounts } = loadFiles([PERIODIC, FIXTURE]);
   const byPnl    = buildBonusReport(accounts, { basis: 'abs_pnl' });
-  const byVolume = buildBonusReport(accounts, { basis: 'volume' });
+  const byVolume = buildBonusReport(accounts, { basis: 'wagered' });
   assert.notDeepStrictEqual(
     byPnl.active.map(a => a.account),
     byVolume.active.map(a => a.account),

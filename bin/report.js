@@ -3,7 +3,7 @@
 // CLI: reads one or more ledger exports and prints the weekly bonus
 // leaderboard or the referral commission report.
 //
-//   node bin/report.js bonus     <exports...> [--basis=abs_pnl|volume] [--json]
+//   node bin/report.js bonus     <exports...> [--basis=total_pnl|abs_pnl|wagered] [--json]
 //   node bin/report.js referrals <exports...> [--csv]
 //   node bin/report.js verify    <exports...>
 //
@@ -74,8 +74,7 @@ function main() {
     console.log(`Pool ${money(report.config.pool)} · cap ${money(report.config.cap)}/account `
       + `· top ${report.config.topPct * 100}% (floor ${report.config.minEligible})`);
     console.log(`Eligible ${report.eligibleCount} · cutoff ${money(report.threshold)}`);
-    console.log(`Total ${money(report.totalWeight)} (wins + losses added together)`
-      + ` · net ${money(report.netPnl)}\n`);
+    console.log(`Total ${money(report.totalWeight)} · net ${money(report.netPnl)}\n`);
 
     console.log(['  #', 'Account'.padEnd(16), 'Agent'.padEnd(12),
       report.metric.label.padStart(12), 'Share'.padStart(8), 'Result'.padStart(9),

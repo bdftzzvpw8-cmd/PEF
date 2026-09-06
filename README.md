@@ -4,7 +4,7 @@ Weekly **bonus leaderboard** and **referral commission** reports, rebuilt to rea
 the new platform's transaction-ledger export.
 
 ```
-npm test                                       # 66 tests, no dependencies
+npm test                                       # 69 tests, no dependencies
 node bin/report.js bonus     <exports...>      # weekly bonus leaderboard
 node bin/report.js referrals <exports...>      # referral commissions
 node bin/report.js verify    <exports...>      # structural checks only
@@ -86,36 +86,48 @@ figures are kept (`periodicPnl`, `ledgerPnl`) so the gap stays visible.
 
 ## Bonus leaderboard
 
-Ranked on **|P&L|** — the size of the week's swing, so a big winner and a big
-loser of the same magnitude rank together. The periodic summary alone is enough.
+Ranked on **volume** — each client's wins and losses totalled across their bet
+types. The client with the most is #1. The periodic summary alone is enough.
 
-1. Accounts that broke exactly even are excluded outright.
-2. Qualifying accounts are ranked by |P&L|, largest first.
+A client who won $500 on PreMatch and lost $400 InPlay counts for **$900**, not
+$100: the two are added, never netted against each other. That measures how much
+action the client put through, which is what the leaderboard has always
+rewarded.
+
+1. Accounts with no action at all are excluded outright.
+2. Qualifying accounts are ranked by that total, largest first.
 3. Eligible = the top 20%, **but never fewer than 10** accounts (or than exist).
-4. The $3,000 pool is split in proportion to |P&L| across the eligible set.
+4. The $3,000 pool is split in proportion to the same total.
 5. Any award over the $500 per-account cap is trimmed, and the overflow
    re-spread among accounts still under the cap, repeating until settled.
-6. The cutoff is the |P&L| of the last account to make the cut.
+6. The cutoff is the total of the last account to make the cut.
 
-### The week's total
+### Totalling, at both levels
 
-**Wins and losses are added together, not netted.** An account that won $400 and
-one that lost $400 each contribute $400, so the total reflects the whole week's
-action — the direct analog of the old "Total Vol".
-
-The difference is not cosmetic. On a live week:
+Wins and losses are added together rather than netted — **within** each client,
+across their bet types, and **across** clients for the book total. On a live
+week the difference is an order of magnitude:
 
 | | |
 | --- | --- |
-| Wins + losses added together (`total_volume`) | **$10,656.59** |
-| The same figure netted (`net_pnl`) | $1,558.55 |
+| Totalled, per client then summed (`total_volume`) | **$14,135.59** |
+| Netted within each client, then summed | $10,656.59 |
+| Netted throughout (`net_pnl`) | $1,558.55 |
 
-The netted figure is what the export's own grand-total row reports, because
-$6,107 of player wins cancels $4,549 of house wins. Both are in the payload so
+The last is what the export's own grand-total row reports: $6,107 of player wins
+cancels $4,549 of house wins, and inside individual clients a losing product
+cancels a winning one. `total_volume` and `net_pnl` are both in the payload so
 the two can be reconciled rather than mistaken for each other.
 
-`--basis=volume` restores the original ranking, weighted by wagering volume.
-That needs ledger files, since only the ledger carries volume. Other defaults
+Ten of the thirty-nine accounts in the live export are affected. The starkest is
+an account whose net P&L is $28 — near enough invisible — but which ran $237
+against $209 across two products, so it carries $446 of action and makes the top
+ten.
+
+Two other bases exist for comparison. `--basis=abs_pnl` nets each client's bet
+types before taking the magnitude — on live data that shrinks the book total from
+$14,135.59 to $10,656.59 and changes who holds the top ten. `--basis=wagered` is
+the original ranking on amount staked, which needs ledger files. Other defaults
 are overridable too: `--pool=3000 --cap=500 --topPct=20 --floor=10`.
 
 > **Cap can ceiling the pool.** An eligible set of *n* accounts can absorb at
