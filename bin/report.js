@@ -3,7 +3,7 @@
 // CLI: reads one or more ledger exports and prints the weekly bonus
 // leaderboard or the referral commission report.
 //
-//   node bin/report.js bonus     <exports...> [--pool=3000] [--json]
+//   node bin/report.js bonus     <exports...> [--basis=abs_pnl|volume] [--json]
 //   node bin/report.js referrals <exports...> [--csv]
 //   node bin/report.js verify    <exports...>
 //
@@ -55,6 +55,7 @@ function main() {
 
   if (command === 'bonus') {
     const report = buildBonusReport(players, {
+      ...(flags.basis  !== undefined && { basis:  String(flags.basis) }),
       ...(flags.pool   !== undefined && { pool:   Number(flags.pool) }),
       ...(flags.cap    !== undefined && { cap:    Number(flags.cap) }),
       ...(flags.topPct !== undefined && { topPct: Number(flags.topPct) / 100 }),
@@ -67,22 +68,28 @@ function main() {
     }
 
     console.log(`\nWeekly Bonus Leaderboard   ${week.weekStart} → ${week.weekEnd}`);
-    console.log(`${accounts.size} accounts · ${report.active.length} with volume `
+    console.log(`Ranked on ${report.metric.label} — ${report.metric.note}`);
+    console.log(`${accounts.size} accounts · ${report.active.length} qualifying `
       + `· ${report.inactive.length} excluded`);
     console.log(`Pool ${money(report.config.pool)} · cap ${money(report.config.cap)}/account `
       + `· top ${report.config.topPct * 100}% (floor ${report.config.minEligible})`);
-    console.log(`Eligible ${report.eligibleCount} · cutoff volume ${money(report.volumeThreshold)}\n`);
+    console.log(`Eligible ${report.eligibleCount} · cutoff ${money(report.threshold)}\n`);
 
-    console.log(['  #', 'Account'.padEnd(16), 'Agent'.padEnd(10),
-      'Volume'.padStart(12), 'Share'.padStart(8), 'Bonus'.padStart(11)].join(' '));
+    console.log(['  #', 'Account'.padEnd(16), 'Agent'.padEnd(12),
+      report.metric.label.padStart(12), 'Share'.padStart(8), 'Result'.padStart(9),
+      'Bonus'.padStart(11)].join(' '));
     report.eligible.forEach((a, i) => {
-      const share = report.eligibleVolume > 0 ? (a.volume / report.eligibleVolume) * 100 : 0;
+      const share = report.eligibleWeight > 0 ? (a.metricValue / report.eligibleWeight) * 100 : 0;
+      // House view: a negative P&L means the house won.
+      const result = a.pnl === undefined || a.pnl === 0 ? '—'
+        : a.pnl < 0 ? 'house won' : 'player won';
       console.log([
         String(i + 1).padStart(3),
-        a.player.padEnd(16),
-        (a.agent || '—').padEnd(10),
-        count(a.volume).padStart(12),
+        (a.player ?? a.account).padEnd(16),
+        (a.agent || a.group || '—').padEnd(12),
+        count(a.metricValue).padStart(12),
         (share.toFixed(2) + '%').padStart(8),
+        result.padStart(9),
         money(a.bonus).padStart(11),
       ].join(' '));
     });

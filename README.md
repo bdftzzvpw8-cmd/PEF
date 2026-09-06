@@ -4,7 +4,7 @@ Weekly **bonus leaderboard** and **referral commission** reports, rebuilt to rea
 the new platform's transaction-ledger export.
 
 ```
-npm test                                       # 59 tests, no dependencies
+npm test                                       # 64 tests, no dependencies
 node bin/report.js bonus     <exports...>      # weekly bonus leaderboard
 node bin/report.js referrals <exports...>      # referral commissions
 node bin/report.js verify    <exports...>      # structural checks only
@@ -86,17 +86,20 @@ figures are kept (`periodicPnl`, `ledgerPnl`) so the gap stays visible.
 
 ## Bonus leaderboard
 
-Needs ledger files: ranking is volume-weighted, and only the ledger has volume.
+Ranked on **|P&L|** — the size of the week's swing, so a big winner and a big
+loser of the same magnitude rank together. The periodic summary alone is enough.
 
-1. Accounts with zero wagering volume are excluded outright.
-2. Active accounts are ranked by volume, highest first.
+1. Accounts that broke exactly even are excluded outright.
+2. Qualifying accounts are ranked by |P&L|, largest first.
 3. Eligible = the top 20%, **but never fewer than 10** accounts (or than exist).
-4. The $3,000 pool is split in proportion to volume across the eligible set.
+4. The $3,000 pool is split in proportion to |P&L| across the eligible set.
 5. Any award over the $500 per-account cap is trimmed, and the overflow
    re-spread among accounts still under the cap, repeating until settled.
-6. The cutoff volume is that of the last account to make the cut.
+6. The cutoff is the |P&L| of the last account to make the cut.
 
-Defaults are overridable: `--pool=3000 --cap=500 --topPct=20 --floor=10`.
+`--basis=volume` restores the original ranking, weighted by wagering volume.
+That needs ledger files, since only the ledger carries volume. Other defaults
+are overridable too: `--pool=3000 --cap=500 --topPct=20 --floor=10`.
 
 > **Cap can ceiling the pool.** An eligible set of *n* accounts can absorb at
 > most `n × cap`. With the floor of 10 and a $500 cap that ceiling is $5,000, so
@@ -107,6 +110,12 @@ Defaults are overridable: `--pool=3000 --cap=500 --topPct=20 --floor=10`.
 `--json` emits the leaderboard payload in the shape the collection already
 stores: `generated_at`, `week_start`, `week_end`, `volume_threshold`, and the
 top ten accounts by rank.
+
+> **`volume_threshold` no longer holds a volume.** The key keeps its name so
+> existing consumers do not break, but it now carries the cutoff for whichever
+> metric ranked the board. A new `threshold_basis` field (`abs_pnl` or `volume`)
+> says which — anything displaying that number as "cutoff volume" needs its
+> label updated.
 
 ## Referral commissions
 

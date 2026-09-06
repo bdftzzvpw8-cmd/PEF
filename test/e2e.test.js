@@ -45,7 +45,7 @@ test('the reporting week comes from the transaction dates', () => {
 
 test('bonus leaderboard ranks by volume and excludes the non-wagering account', () => {
   const { players, week } = load();
-  const report = buildBonusReport(players);
+  const report = buildBonusReport(players, { basis: 'volume' });
 
   assert.deepStrictEqual(report.active.map(a => a.player), ['CC300', 'BB200', 'AA100', 'DD400']);
   assert.strictEqual(report.inactive.length, 1, 'EE500 has no volume');
@@ -65,6 +65,7 @@ test('bonus leaderboard ranks by volume and excludes the non-wagering account', 
   const payload = toPayload(report, week);
   assert.strictEqual(payload.week_end, '09-06-2026');
   assert.strictEqual(payload.volume_threshold, 60);
+  assert.strictEqual(payload.threshold_basis, 'volume');
   assert.strictEqual(payload.bonuses[0].account, 'CC300');
 });
 
@@ -90,4 +91,51 @@ test('commission is owed once the referred group is net down', () => {
   const report = buildReferralReport(players, referrals.filter(e => e.referredKey !== 'CC300'));
   assert.strictEqual(report.groups[0].pnl, -150);
   assert.strictEqual(report.groups[0].commission, 30);
+});
+
+// ── Ranking on P&L, across both export shapes ────────────────────────────────
+const { load: loadFiles } = require('../lib/load');
+const PERIODIC = path.join(__dirname, 'fixtures', 'periodic-sample.csv');
+
+test('the P&L board ranks on the size of the swing, winners and losers alike', () => {
+  const { accounts } = loadFiles([PERIODIC]);
+  const report = buildBonusReport(accounts, { basis: 'abs_pnl' });
+
+  // CC300 is up 400 and BB200 down 100 — the biggest swings lead, either way.
+  assert.deepStrictEqual(
+    report.active.map(a => a.account),
+    ['CC300', 'BB200', 'FF600', 'AA100'],
+  );
+  assert.strictEqual(report.active[0].pnl, -400, 'the top account is a big house win');
+  assert.ok(report.active.some(a => a.pnl > 0), 'accounts on both sides qualify');
+});
+
+test('an account that broke exactly even does not qualify', () => {
+  const { accounts } = loadFiles([PERIODIC]);
+  accounts.set('ZZ999', { account: 'ZZ999', player: 'ZZ999', key: 'ZZ999', volume: 0, pnl: 0 });
+  const report = buildBonusReport(accounts, { basis: 'abs_pnl' });
+  assert.ok(report.inactive.some(a => a.account === 'ZZ999'));
+  assert.ok(!report.eligible.some(a => a.account === 'ZZ999'));
+});
+
+test('the payload records which metric set the cutoff', () => {
+  const { accounts, week } = loadFiles([PERIODIC]);
+  const payload = toPayload(buildBonusReport(accounts, { basis: 'abs_pnl' }), week);
+  assert.strictEqual(payload.threshold_basis, 'abs_pnl');
+  assert.strictEqual(payload.volume_threshold, 19, 'the smallest qualifying swing');
+});
+
+test('ranking basis changes who leads the board', () => {
+  const { accounts } = loadFiles([PERIODIC, FIXTURE]);
+  const byPnl    = buildBonusReport(accounts, { basis: 'abs_pnl' });
+  const byVolume = buildBonusReport(accounts, { basis: 'volume' });
+  assert.notDeepStrictEqual(
+    byPnl.active.map(a => a.account),
+    byVolume.active.map(a => a.account),
+  );
+});
+
+test('an unknown ranking basis is rejected rather than silently defaulted', () => {
+  const { accounts } = loadFiles([PERIODIC]);
+  assert.throws(() => buildBonusReport(accounts, { basis: 'turnover' }), /Unknown ranking basis/);
 });

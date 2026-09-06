@@ -3,41 +3,39 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { distribute, buildBonusReport, DEFAULTS } = require('../lib/bonus');
 
-function playersFrom(volumes) {
+// Each account gets the same figure as volume and as a loss, so a test reads
+// the same under either ranking basis.
+function playersFrom(values) {
   const map = new Map();
-  volumes.forEach((volume, i) => {
+  values.forEach((value, i) => {
     const name = `ACCT${String(i + 1).padStart(2, '0')}`;
-    map.set(name, { player: name, key: name, agent: 'A', volume, pnl: 0, bets: 1 });
+    map.set(name, { player: name, key: name, agent: 'A', volume: value, pnl: -value, bets: 1 });
   });
   return map;
 }
 
-test('distributes the whole pool in proportion to volume', () => {
-  const accounts = [{ volume: 300 }, { volume: 200 }, { volume: 500 }];
-  const awards = distribute(accounts, 1000, 10000);
+test('distributes the whole pool in proportion to the weights', () => {
+  const awards = distribute([300, 200, 500], 1000, 10000);
   assert.deepStrictEqual(awards.map(a => Math.round(a)), [300, 200, 500]);
   assert.ok(Math.abs(awards.reduce((s, a) => s + a, 0) - 1000) < 0.01);
 });
 
 test('caps an account and re-spreads the overflow to the others', () => {
   // Without a cap the first account would take $900 of the $1000.
-  const accounts = [{ volume: 900 }, { volume: 50 }, { volume: 50 }];
-  const awards = distribute(accounts, 1000, 500);
+  const awards = distribute([900, 50, 50], 1000, 500);
   assert.strictEqual(Math.round(awards[0]), 500);
   assert.ok(Math.abs(awards.reduce((s, a) => s + a, 0) - 1000) < 0.01,
     'overflow should be redistributed, not lost');
-  assert.ok(Math.abs(awards[1] - awards[2]) < 0.01, 'equal volume, equal award');
+  assert.ok(Math.abs(awards[1] - awards[2]) < 0.01, 'equal weight, equal award');
 });
 
 test('stops cleanly when every account hits the cap', () => {
-  const accounts = [{ volume: 100 }, { volume: 100 }];
-  const awards = distribute(accounts, 1000, 200);
+  const awards = distribute([100, 100], 1000, 200);
   assert.deepStrictEqual(awards.map(Math.round), [200, 200]);
 });
 
 test('never awards more than the cap after redistribution', () => {
-  const volumes = [5000, 100, 90, 80, 70, 60, 50, 40, 30, 20];
-  const awards = distribute(volumes.map(volume => ({ volume })), 3000, 500);
+  const awards = distribute([5000, 100, 90, 80, 70, 60, 50, 40, 30, 20], 3000, 500);
   for (const award of awards) assert.ok(award <= 500 + 1e-6, `${award} exceeds cap`);
 });
 
@@ -59,20 +57,20 @@ test('eligibility never exceeds the number of active accounts', () => {
   assert.strictEqual(report.ineligible.length, 0);
 });
 
-test('zero-volume accounts are excluded, not ranked last', () => {
+test('accounts with nothing to rank on are excluded, not ranked last', () => {
   const report = buildBonusReport(playersFrom([100, 0, 50, 0]));
   assert.strictEqual(report.active.length, 2);
   assert.strictEqual(report.inactive.length, 2);
   for (const account of report.inactive) assert.strictEqual(account.bonus, 0);
 });
 
-test('the cutoff is the volume of the last account to make the cut', () => {
+test('the cutoff is the metric value of the last account to make the cut', () => {
   const report = buildBonusReport(playersFrom([900, 800, 700, 600, 500]), { minEligible: 3 });
-  assert.strictEqual(report.volumeThreshold, 700);
+  assert.strictEqual(report.threshold, 700);
 });
 
-test('throws when no account has any volume', () => {
-  assert.throws(() => buildBonusReport(playersFrom([0, 0])), /No active accounts/);
+test('throws when no account has anything to rank on', () => {
+  assert.throws(() => buildBonusReport(playersFrom([0, 0])), /No qualifying accounts/);
 });
 
 test('defaults match the agreed rules', () => {
@@ -80,6 +78,7 @@ test('defaults match the agreed rules', () => {
   assert.strictEqual(DEFAULTS.cap, 500);
   assert.strictEqual(DEFAULTS.topPct, 0.20);
   assert.strictEqual(DEFAULTS.minEligible, 10);
+  assert.strictEqual(DEFAULTS.basis, 'abs_pnl');
 });
 
 test('reports the shortfall when the cap ceilings payout below the pool', () => {

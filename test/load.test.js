@@ -50,15 +50,17 @@ test('referral edges survive the merge and resolve against periodic accounts', (
   for (const edge of referrals) assert.ok(accounts.has(edge.referredKey));
 });
 
-test('warns when a periodic summary arrives without any ledger', () => {
+test('flags accounts that have p&l but no volume, without overstating the effect', () => {
   const { warnings } = load([PERIODIC]);
-  assert.ok(warnings.some(w => /no wagering volume/.test(w)),
-    'the bonus leaderboard cannot be ranked without volume');
+  const warning = warnings.find(w => /no wagering volume/.test(w));
+  assert.ok(warning, 'the volume gap should be reported');
+  assert.ok(/rank normally on P&L/.test(warning),
+    'a P&L-ranked board is unaffected, so the warning must not claim exclusion');
 });
 
-test('warns about accounts that have p&l but no volume', () => {
-  const { warnings } = load([PERIODIC, LEDGER]);
-  assert.ok(warnings.some(w => /no ledger, so no/.test(w)));
+test('warns when only a ledger is supplied', () => {
+  const { warnings } = load([LEDGER]);
+  assert.ok(warnings.some(w => /No periodic summary/.test(w)));
 });
 
 test('the week is taken from whichever export supplies one', () => {
