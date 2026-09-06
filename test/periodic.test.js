@@ -81,3 +81,39 @@ test('verification catches bet-type rows that stop summing to the account', () =
   target['08/31/26 - 09/06/26'] = '-999';  // keep the sign check happy
   assert.ok(verifyPeriodic(broken).some(i => /but the account row says/.test(i)));
 });
+
+// ── Casino exclusion ─────────────────────────────────────────────────────────
+const { EXCLUDED_BET_TYPES, isExcluded } = require('../lib/periodic');
+
+test('the excluded products are named explicitly', () => {
+  assert.deepStrictEqual(EXCLUDED_BET_TYPES, ['Betsoft', 'TFUSION', 'PLAYGLOBE']);
+  assert.ok(isExcluded('betsoft', EXCLUDED_BET_TYPES), 'matching ignores case');
+  assert.ok(!isExcluded('PreMatch', EXCLUDED_BET_TYPES));
+});
+
+test('casino P&L is left out of the account figure by default', () => {
+  const { accounts } = parsePeriodic(rows());
+  const bb = accounts.get('BB200');   // Betsoft only, in the fixture
+  assert.strictEqual(bb.pnl, 0, 'nothing left once casino is removed');
+  assert.strictEqual(bb.excludedPnl, 100);
+  assert.deepStrictEqual(bb.excludedBetTypes, { Betsoft: 100 });
+  assert.strictEqual(bb.reportedPnl, 100, 'the account row still shows everything');
+});
+
+test('sportsbook accounts are untouched by the exclusion', () => {
+  const { accounts } = parsePeriodic(rows());
+  assert.strictEqual(accounts.get('AA100').pnl, 18.5);
+  assert.strictEqual(accounts.get('AA100').excludedPnl, 0);
+});
+
+test('exclusion can be turned off for comparison', () => {
+  const { accounts } = parsePeriodic(rows(), { exclude: [] });
+  assert.strictEqual(accounts.get('BB200').pnl, 100);
+  assert.deepStrictEqual(accounts.get('BB200').excludedBetTypes, {});
+});
+
+test('structural checks still reconcile against the untouched export', () => {
+  // Verification must ignore the exclusion policy, or every casino account
+  // would look like a broken row.
+  assert.deepStrictEqual(verifyPeriodic(rows()), []);
+});

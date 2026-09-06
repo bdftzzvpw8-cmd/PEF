@@ -7,6 +7,8 @@
 //   node bin/report.js referrals <exports...> [--csv]
 //   node bin/report.js verify    <exports...>
 //
+// Casino products are left out of both reports; --include-casino keeps them in.
+//
 // Pass any mix of the two exports the platform emits. The periodic summary
 // carries the whole book's P&L by bet type; the transaction ledger carries
 // wagering volume and the referral rows. The bonus leaderboard needs volume,
@@ -39,9 +41,14 @@ function main() {
     process.exit(1);
   }
 
-  const { accounts, referrals, week, warnings, seen } = load(files);
+  const { accounts, referrals, week, warnings, seen, exclude, excludedTotal, excludedAccounts } =
+    load(files, { includeExcluded: Boolean(flags['include-casino']) });
   const players = accounts;
   for (const warning of warnings) console.error(`NOTE  ${warning}`);
+  const exclusionLine = exclude.length
+    ? `Excluding ${exclude.join(', ')} — ${money(excludedTotal)} across `
+      + `${excludedAccounts} account(s) left out`
+    : 'Including every product (casino not excluded)';
 
   if (command === 'verify') {
     console.log(`\n${files.length} file(s): ${seen.periodic} periodic summary, ${seen.ledger} ledger`);
@@ -69,6 +76,7 @@ function main() {
 
     console.log(`\nWeekly Bonus Leaderboard   ${week.weekStart} → ${week.weekEnd}`);
     console.log(`Ranked on ${report.metric.label} — ${report.metric.note}`);
+    console.log(exclusionLine);
     console.log(`${accounts.size} accounts · ${report.active.length} qualifying `
       + `· ${report.inactive.length} excluded`);
     console.log(`Pool ${money(report.config.pool)} · cap ${money(report.config.cap)}/account `
@@ -118,7 +126,8 @@ function main() {
 
     console.log(`\nWeekly Referrals   ${week.weekStart} → ${week.weekEnd}`);
     console.log(`${report.referrerCount} referrers · ${report.clientCount} referred clients `
-      + `· commission ${report.config.commissionRate * 100}% of net losses\n`);
+      + `· commission ${report.config.commissionRate * 100}% of net losses`);
+    console.log(`${exclusionLine}\n`);
 
     if (!report.groups.length) {
       console.log('No referral rows found. Referrals are read from credit rows '

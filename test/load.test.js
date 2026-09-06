@@ -67,3 +67,25 @@ test('the week is taken from whichever export supplies one', () => {
   assert.strictEqual(load([PERIODIC]).week.weekStart, '08-31-2026');
   assert.strictEqual(load([LEDGER]).week.weekEnd, '09-06-2026');
 });
+
+test('an account left with nothing after exclusion drops out of the leaderboard', () => {
+  const { buildBonusReport } = require('../lib/bonus');
+  const { accounts } = load([PERIODIC]);
+  const report = buildBonusReport(accounts, { basis: 'total_pnl' });
+  // BB200 is casino-only in the fixture.
+  assert.ok(report.inactive.some(a => a.account === 'BB200'));
+  assert.ok(!report.eligible.some(a => a.account === 'BB200'));
+});
+
+test('the merge reports what the exclusion removed', () => {
+  const result = load([PERIODIC]);
+  assert.deepStrictEqual(result.exclude, ['Betsoft', 'TFUSION', 'PLAYGLOBE']);
+  assert.strictEqual(result.excludedTotal, 100);
+  assert.strictEqual(result.excludedAccounts, 1);
+});
+
+test('includeExcluded restores the casino figures', () => {
+  const result = load([PERIODIC], { includeExcluded: true });
+  assert.deepStrictEqual(result.exclude, []);
+  assert.strictEqual(result.accounts.get('BB200').pnl, 100);
+});

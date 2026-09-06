@@ -4,7 +4,7 @@ Weekly **bonus leaderboard** and **referral commission** reports, rebuilt to rea
 the new platform's transaction-ledger export.
 
 ```
-npm test                                       # 69 tests, no dependencies
+npm test                                       # 77 tests, no dependencies
 node bin/report.js bonus     <exports...>      # weekly bonus leaderboard
 node bin/report.js referrals <exports...>      # referral commissions
 node bin/report.js verify    <exports...>      # structural checks only
@@ -57,6 +57,22 @@ tree — agent group, then account, then bet type:
 Bet types map onto the categories the reports have always used: `PreMatch` →
 sports, `InPlay` → live, and `Betsoft` / `TFUSION` / `PLAYGLOBE` → casino.
 Anything unrecognised falls to *other*.
+
+**Casino products are excluded from both reports.** They neither rank a client
+on the leaderboard nor earn a referrer commission. The list lives in one place —
+`EXCLUDED_BET_TYPES` in `lib/periodic.js` — and `--include-casino` puts them back
+for comparison.
+
+> Only `Betsoft` is a recognised casino provider by name. `TFUSION` and
+> `PLAYGLOBE` were classified by inference; nothing in the export states what
+> they are. Between them they carry $1,692 of a $14,136 book, so if either is
+> actually a sportsbook product, move it out of that list — every figure follows
+> automatically.
+
+Each account keeps what the exclusion removed (`excludedPnl`, `excludedBetTypes`)
+and the export's own untouched account figure (`reportedPnl`), so the two can
+always be reconciled. The structural checks deliberately ignore the exclusion:
+they verify the file, not the policy.
 
 This file has no volume, so it cannot rank the bonus leaderboard on its own. It
 carries three traps, each verified against a live export rather than assumed —

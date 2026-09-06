@@ -101,13 +101,19 @@ test('the P&L board ranks on the size of the swing, winners and losers alike', (
   const { accounts } = loadFiles([PERIODIC]);
   const report = buildBonusReport(accounts, { basis: 'abs_pnl' });
 
-  // CC300 is up 400 and BB200 down 100 — the biggest swings lead, either way.
+  // BB200 is casino-only, so the exclusion drops it. Of what is left, CC300 is
+  // up 400 and AA100 down 18.50 — the biggest swings lead, either way.
   assert.deepStrictEqual(
     report.active.map(a => a.account),
-    ['CC300', 'BB200', 'FF600', 'AA100'],
+    ['CC300', 'FF600', 'AA100'],
   );
   assert.strictEqual(report.active[0].pnl, -400, 'the top account is a big house win');
   assert.ok(report.active.some(a => a.pnl > 0), 'accounts on both sides qualify');
+
+  const withCasino = buildBonusReport(loadFiles([PERIODIC], { includeExcluded: true }).accounts,
+    { basis: 'abs_pnl' });
+  assert.ok(withCasino.active.some(a => a.account === 'BB200'),
+    'and it comes back when casino is included');
 });
 
 test('an account that broke exactly even does not qualify', () => {
