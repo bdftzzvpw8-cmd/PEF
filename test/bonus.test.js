@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert');
-const { distribute, buildBonusReport, DEFAULTS } = require('../lib/bonus');
+const { distribute, buildBonusReport, toPayload, DEFAULTS } = require('../lib/bonus');
 
 // Each account gets the same figure as volume and as a loss, so a test reads
 // the same under either ranking basis.
@@ -93,4 +93,27 @@ test('reports no shortfall when the eligible set can absorb the pool', () => {
   const report = buildBonusReport(playersFrom(Array.from({ length: 20 }, (_, i) => 100 - i)));
   assert.ok(Math.abs(report.totalPaid - 3000) < 0.01);
   assert.strictEqual(Math.round(report.unpaid), 0);
+});
+
+test('the book total adds wins and losses together instead of netting them', () => {
+  const accounts = new Map([
+    ['W', { player: 'W', key: 'W', pnl:  400, volume: 0 }],   // player won 400
+    ['L', { player: 'L', key: 'L', pnl: -400, volume: 0 }],   // house won 400
+    ['S', { player: 'S', key: 'S', pnl: -100, volume: 0 }],
+  ]);
+  const report = buildBonusReport(accounts, { basis: 'abs_pnl', minEligible: 3 });
+
+  assert.strictEqual(report.totalWeight, 900, 'wins and losses add together');
+  assert.strictEqual(report.netPnl, -100, 'the netted figure cancels most of it');
+});
+
+test('the payload carries the totalled figure alongside the netted one', () => {
+  const accounts = new Map([
+    ['W', { player: 'W', key: 'W', pnl:  400, volume: 0 }],
+    ['L', { player: 'L', key: 'L', pnl: -400, volume: 0 }],
+  ]);
+  const report  = buildBonusReport(accounts, { basis: 'abs_pnl', minEligible: 2 });
+  const payload = toPayload(report, { weekStart: '08-31-2026', weekEnd: '09-06-2026' });
+  assert.strictEqual(payload.total_volume, 800);
+  assert.strictEqual(payload.net_pnl, 0);
 });

@@ -4,7 +4,7 @@ Weekly **bonus leaderboard** and **referral commission** reports, rebuilt to rea
 the new platform's transaction-ledger export.
 
 ```
-npm test                                       # 64 tests, no dependencies
+npm test                                       # 66 tests, no dependencies
 node bin/report.js bonus     <exports...>      # weekly bonus leaderboard
 node bin/report.js referrals <exports...>      # referral commissions
 node bin/report.js verify    <exports...>      # structural checks only
@@ -97,6 +97,23 @@ loser of the same magnitude rank together. The periodic summary alone is enough.
    re-spread among accounts still under the cap, repeating until settled.
 6. The cutoff is the |P&L| of the last account to make the cut.
 
+### The week's total
+
+**Wins and losses are added together, not netted.** An account that won $400 and
+one that lost $400 each contribute $400, so the total reflects the whole week's
+action — the direct analog of the old "Total Vol".
+
+The difference is not cosmetic. On a live week:
+
+| | |
+| --- | --- |
+| Wins + losses added together (`total_volume`) | **$10,656.59** |
+| The same figure netted (`net_pnl`) | $1,558.55 |
+
+The netted figure is what the export's own grand-total row reports, because
+$6,107 of player wins cancels $4,549 of house wins. Both are in the payload so
+the two can be reconciled rather than mistaken for each other.
+
 `--basis=volume` restores the original ranking, weighted by wagering volume.
 That needs ledger files, since only the ledger carries volume. Other defaults
 are overridable too: `--pool=3000 --cap=500 --topPct=20 --floor=10`.
@@ -108,8 +125,8 @@ are overridable too: `--pool=3000 --cap=500 --topPct=20 --floor=10`.
 > it disappear.
 
 `--json` emits the leaderboard payload in the shape the collection already
-stores: `generated_at`, `week_start`, `week_end`, `volume_threshold`, and the
-top ten accounts by rank.
+stores: `generated_at`, `week_start`, `week_end`, `volume_threshold`,
+`total_volume`, `net_pnl`, and the top ten accounts by rank.
 
 > **`volume_threshold` no longer holds a volume.** The key keeps its name so
 > existing consumers do not break, but it now carries the cutoff for whichever

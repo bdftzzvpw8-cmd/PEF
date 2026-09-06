@@ -73,7 +73,9 @@ function main() {
       + `· ${report.inactive.length} excluded`);
     console.log(`Pool ${money(report.config.pool)} · cap ${money(report.config.cap)}/account `
       + `· top ${report.config.topPct * 100}% (floor ${report.config.minEligible})`);
-    console.log(`Eligible ${report.eligibleCount} · cutoff ${money(report.threshold)}\n`);
+    console.log(`Eligible ${report.eligibleCount} · cutoff ${money(report.threshold)}`);
+    console.log(`Total ${money(report.totalWeight)} (wins + losses added together)`
+      + ` · net ${money(report.netPnl)}\n`);
 
     console.log(['  #', 'Account'.padEnd(16), 'Agent'.padEnd(12),
       report.metric.label.padStart(12), 'Share'.padStart(8), 'Result'.padStart(9),
@@ -93,7 +95,11 @@ function main() {
         money(a.bonus).padStart(11),
       ].join(' '));
     });
-    console.log(`\nTotal paid ${money(report.totalPaid)} of ${money(report.config.pool)}`);
+    const eligibleShare = report.totalWeight > 0
+      ? (report.eligibleWeight / report.totalWeight) * 100 : 0;
+    console.log(`\nEligible accounts hold ${money(report.eligibleWeight)} of the `
+      + `${money(report.totalWeight)} total (${eligibleShare.toFixed(1)}%)`);
+    console.log(`Total paid ${money(report.totalPaid)} of ${money(report.config.pool)}`);
     if (report.unpaid > 0.01) {
       console.log(`WARNING  ${money(report.unpaid)} undistributed — ${report.eligibleCount} eligible `
         + `account(s) at a ${money(report.config.cap)} cap can absorb at most `
