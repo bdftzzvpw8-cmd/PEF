@@ -3,14 +3,16 @@
 // CLI: reads one or more ledger exports and prints the weekly bonus
 // leaderboard or the referral commission report.
 //
-//   node bin/report.js bonus     export.csv [more.csv ...] [--pool=3000] [--json]
-//   node bin/report.js referrals export.csv [more.csv ...] [--csv]
+//   node bin/report.js bonus     <exports...> [--pool=3000] [--json]
+//   node bin/report.js referrals <exports...> [--csv]
+//   node bin/report.js verify    <exports...>
 //
-// Multiple files are concatenated, so it works whether the platform exports
-// one file per player or one file for the whole book.
+// Pass any mix of the two exports the platform emits. The periodic summary
+// carries the whole book's P&L by bet type; the transaction ledger carries
+// wagering volume and the referral rows. The bonus leaderboard needs volume,
+// so it needs ledger files.
 
-const { readFile }            = require('../lib/sheet');
-const { loadLedger }          = require('../lib/ledger');
+const { load }                = require('../lib/load');
 const { buildBonusReport, toPayload } = require('../lib/bonus');
 const { buildReferralReport, toCsv }  = require('../lib/referrals');
 
@@ -37,8 +39,19 @@ function main() {
     process.exit(1);
   }
 
-  const rows = files.flatMap(readFile);
-  const { players, referrals, week, transactions } = loadLedger(rows);
+  const { accounts, referrals, week, warnings, seen } = load(files);
+  const players = accounts;
+  for (const warning of warnings) console.error(`NOTE  ${warning}`);
+
+  if (command === 'verify') {
+    console.log(`\n${files.length} file(s): ${seen.periodic} periodic summary, ${seen.ledger} ledger`);
+    console.log(`Week ${week ? `${week.weekStart} → ${week.weekEnd}` : 'unknown'}`);
+    console.log(`${accounts.size} accounts · ${referrals.length} referral edge(s)`);
+    const withVolume = [...accounts.values()].filter(a => a.volume > 0).length;
+    console.log(`${withVolume} account(s) have wagering volume`);
+    console.log(warnings.length ? `\n${warnings.length} note(s) above.\n` : '\nNo inconsistencies found.\n');
+    return;
+  }
 
   if (command === 'bonus') {
     const report = buildBonusReport(players, {
@@ -54,8 +67,8 @@ function main() {
     }
 
     console.log(`\nWeekly Bonus Leaderboard   ${week.weekStart} → ${week.weekEnd}`);
-    console.log(`${transactions.length} transactions · ${report.active.length} active `
-      + `· ${report.inactive.length} zero-volume excluded`);
+    console.log(`${accounts.size} accounts · ${report.active.length} with volume `
+      + `· ${report.inactive.length} excluded`);
     console.log(`Pool ${money(report.config.pool)} · cap ${money(report.config.cap)}/account `
       + `· top ${report.config.topPct * 100}% (floor ${report.config.minEligible})`);
     console.log(`Eligible ${report.eligibleCount} · cutoff volume ${money(report.volumeThreshold)}\n`);

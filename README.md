@@ -4,21 +4,25 @@ Weekly **bonus leaderboard** and **referral commission** reports, rebuilt to rea
 the new platform's transaction-ledger export.
 
 ```
-npm test                                     # 40 tests, no dependencies
-node bin/report.js bonus     export.csv       # weekly bonus leaderboard
-node bin/report.js referrals export.csv       # referral commissions
+npm test                                       # 59 tests, no dependencies
+node bin/report.js bonus     <exports...>      # weekly bonus leaderboard
+node bin/report.js referrals <exports...>      # referral commissions
+node bin/report.js verify    <exports...>      # structural checks only
 ```
 
-Pass as many export files as you like — they are concatenated and grouped by the
-`Player` column, so it works whether the platform exports one file per player or
-one file for the whole book. Both `.csv` and `.xlsx` are read natively; there are
-no npm dependencies.
+Pass any mix of files; `.csv` and `.xlsx` are both read natively and there are no
+npm dependencies.
 
-## The export
+## The two exports
 
-One row per transaction, with columns `Player, Type, ID, Hold Transaction Id,
-Credit, Debit, Final Balance, Pending Status, Date, Details, User, Agent,
-Actions`. Dates are `MM/DD/YY`.
+The platform emits two shapes, and the reports need both.
+
+### Transaction ledger
+
+One row per transaction: `Player, Type, ID, Hold Transaction Id, Credit, Debit,
+Final Balance, Pending Status, Date, Details, User, Agent, Actions`. Dates are
+`MM/DD/YY`. This is the **only** source of wagering volume, and where referral
+rows live. It appears to be exported per player.
 
 Only wagers move the numbers:
 
@@ -39,7 +43,50 @@ Referral bonuses are recorded on the ledger but are deliberately excluded from
 both volume and P&L — a referrer's commission is calculated on their clients'
 betting losses alone.
 
+### Periodic (weekly) summary
+
+A hierarchical grid covering the whole book, whose `Group` column is an indented
+tree — agent group, then account, then bet type:
+
+```
+ -> BITCOINBAY
+ -> BITCOINBAY -> BTCB50
+ -> BITCOINBAY -> BTCB50 -> PreMatch
+```
+
+Bet types map onto the categories the reports have always used: `PreMatch` →
+sports, `InPlay` → live, and `Betsoft` / `TFUSION` / `PLAYGLOBE` → casino.
+Anything unrecognised falls to *other*.
+
+This file has no volume, so it cannot rank the bonus leaderboard on its own. It
+carries three traps, each verified against a live export rather than assumed —
+`lib/periodic.js` handles all three, and `report.js verify` re-checks them on
+every new file:
+
+1. **Every bet-type row is followed by a blank-`Group` row repeating it.**
+   Counting those doubles every figure.
+2. **The column headed with the week range is the negated, truncated `Total`.**
+   P&L is read from `Total`, which has the sign and the precision.
+3. **`Pending` and `End Balance` are inflated.** They are account-level values
+   repeated on each bet-type row, which the grid then sums into the account row
+   — so an account with three bet types shows three times its real balance. The
+   de-duplicated leaf value is reported, with the grid's own figure kept
+   alongside as `endBalanceReported` / `pendingReported`.
+
+   *Confirmed against live data: account GD070's ledger closes at 0.84, matching
+   the leaf value 0.846, not the 2.538 on its account row.*
+
+### Combining them
+
+`lib/load.js` merges whatever you pass. Volume and referral edges come from the
+ledger; bet-type P&L and whole-book coverage come from the periodic summary.
+Where both describe an account, **the periodic P&L wins** — the ledger reflects
+only graded wagers, so it understates the week while bets are still open. Both
+figures are kept (`periodicPnl`, `ledgerPnl`) so the gap stays visible.
+
 ## Bonus leaderboard
+
+Needs ledger files: ranking is volume-weighted, and only the ledger has volume.
 
 1. Accounts with zero wagering volume are excluded outright.
 2. Active accounts are ranked by volume, highest first.
@@ -92,7 +139,9 @@ runs back six days, matching how the weekly files have always been cut.
 ```
 lib/zip.js        minimal zip reader (an .xlsx is a zip of XML)
 lib/sheet.js      .csv and .xlsx into row objects
-lib/ledger.js     normalize transactions, aggregate players, extract referrals
+lib/ledger.js     transaction ledger: players, volume, referral edges
+lib/periodic.js   periodic summary: bet-type P&L, plus its three quirks
+lib/load.js       merge whatever exports are supplied into one week
 lib/bonus.js      leaderboard: eligibility, weighting, cap redistribution
 lib/referrals.js  referral grouping and commission
 bin/report.js     CLI
