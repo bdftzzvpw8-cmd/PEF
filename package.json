@@ -1,0 +1,14 @@
+{
+  "name": "pef-weekly-reports",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Weekly bonus leaderboard and referral commission reports, built from the platform transaction ledger export.",
+  "main": "lib/ledger.js",
+  "bin": { "weekly-report": "bin/report.js" },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "bonus": "node bin/report.js bonus",
+    "referrals": "node bin/report.js referrals"
+  },
+  "engines": { "node": ">=18" }
+}

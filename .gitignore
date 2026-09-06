@@ -1,0 +1,7 @@
+node_modules/
+*.log
+
+# Platform exports contain live player data — keep them out of the repo.
+exports/
+*.xlsx
+!test/fixtures/*.xlsx
