@@ -4,14 +4,31 @@ Weekly **bonus leaderboard** and **referral commission** reports, rebuilt to rea
 the new platform's transaction-ledger export.
 
 ```
-npm test                                       # 77 tests, no dependencies
-node bin/report.js bonus     <exports...>      # weekly bonus leaderboard
-node bin/report.js referrals <exports...>      # referral commissions
+npm test                                       # 84 tests, no dependencies
+node bin/report.js weekly    <exports...>      # leaderboard + referrals
+node bin/report.js bonus     <exports...>      # leaderboard only
+node bin/report.js referrals <exports...>      # referral commissions only
 node bin/report.js verify    <exports...>      # structural checks only
 ```
 
 Pass any mix of files; `.csv` and `.xlsx` are both read natively and there are no
 npm dependencies.
+
+## The weekly report
+
+`weekly` runs both halves over one set of exports and one week. The leaderboard
+gains a **Referred by** column whenever referral data is present, and any client
+who both won a bonus and was referred is listed at the end — the overlap that
+matters when the same client costs you a bonus and earns someone a commission.
+
+`weekly --json` emits a **superset** of the `bonus --json` payload: every key the
+leaderboard collection already stores, plus a `referrals` block and a
+`bonus_winners_referred` list. Anything reading the existing payload keeps
+working unchanged.
+
+Referrals live only in the transaction ledger, so `weekly` needs at least one
+ledger file to report any. With just a periodic summary the leaderboard is
+complete and the referral section says so rather than showing an empty table.
 
 ## The two exports
 
