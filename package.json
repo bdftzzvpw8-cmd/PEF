@@ -4,11 +4,17 @@
   "private": true,
   "description": "Weekly bonus leaderboard and referral commission reports, built from the platform transaction ledger export.",
   "main": "lib/ledger.js",
-  "bin": { "weekly-report": "bin/report.js" },
+  "bin": {
+    "weekly-report": "bin/report.js"
+  },
   "scripts": {
-    "test": "node --test test/*.test.js",
+    "build": "node tools/build-html.js",
+    "test": "npm run build && node --test test/*.test.js",
+    "weekly": "node bin/report.js weekly",
     "bonus": "node bin/report.js bonus",
     "referrals": "node bin/report.js referrals"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }

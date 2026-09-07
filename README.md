@@ -4,7 +4,8 @@ Weekly **bonus leaderboard** and **referral commission** reports, rebuilt to rea
 the new platform's transaction-ledger export.
 
 ```
-npm test                                       # 86 tests, no dependencies
+npm run build                                  # -> dist/weekly-report.html
+npm test                                       # 88 tests, no dependencies
 node bin/report.js weekly    <exports...>      # leaderboard + referrals
 node bin/report.js bonus     <exports...>      # leaderboard only
 node bin/report.js referrals <exports...>      # referral commissions only
@@ -13,6 +14,28 @@ node bin/report.js verify    <exports...>      # structural checks only
 
 Pass any mix of files; `.csv` and `.xlsx` are both read natively and there are no
 npm dependencies.
+
+## The page
+
+`dist/weekly-report.html` is a single self-contained file. Open it in a browser,
+drop in the week's exports, and it renders the same report the CLI does —
+leaderboard, referrals, JSON payload and a CSV download.
+
+Everything runs locally in the page. Nothing is uploaded, there are no CDN
+requests and no network access at all, which matters given what these exports
+contain. It works offline and from `file://`.
+
+It is **built, not hand-written**: `npm run build` wraps the same `lib/` modules
+the CLI uses in a small module registry and injects them into `web/template.html`.
+The reporting rules therefore exist in exactly one place. Edit `lib/`, never
+`dist/`.
+
+Only file reading differs between the two: Node inflates an `.xlsx` with `zlib`,
+the browser with `DecompressionStream`. A test drives the built page in headless
+Chromium and asserts it produces the same accounts, order and bonuses as the CLI
+from the same fixtures — including a genuinely deflate-compressed workbook — so
+the two cannot drift apart unnoticed. It skips cleanly where Playwright is not
+installed.
 
 ## The weekly report
 

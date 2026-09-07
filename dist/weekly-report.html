@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Report</title>
+<style>
+  :root {
+    --bg:#0a0c0f; --surface:#111318; --surface2:#181c23;
+    --border:#1f2530; --border2:#2a3040;
+    --gold:#f0b429; --gold2:#ffd166; --green:#00d68f; --green-dim:#00a86e;
+    --red:#ff5c5c; --blue:#4a9eff; --purple:#b98cf0;
+    --text:#e8ecf4; --muted:#5a6478; --muted2:#8892a4;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif; min-height:100vh; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:linear-gradient(rgba(240,180,41,0.03) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(240,180,41,0.03) 1px,transparent 1px);
+    background-size:40px 40px;
+  }
+  .wrapper { position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:40px 24px 80px; }
+  code, .mono, .num { font-family:'DM Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace; }
+
+  header { margin-bottom:28px; }
+  .header-tag { display:inline-block; font-family:ui-monospace,monospace; font-size:11px; color:var(--gold);
+    letter-spacing:.15em; text-transform:uppercase; border:1px solid rgba(240,180,41,.3);
+    padding:4px 10px; border-radius:3px; margin-bottom:14px; }
+  h1 { font-size:clamp(30px,5vw,46px); font-weight:800; line-height:1.05; letter-spacing:-.02em; }
+  h1 span { color:var(--gold); }
+  .subtitle { margin-top:10px; color:var(--muted2); font-size:15px; font-weight:300; }
+
+  .config-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:24px 0; }
+  .config-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:14px 16px; }
+  .config-label { font-family:ui-monospace,monospace; font-size:10px; color:var(--muted2);
+    letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px; }
+  .config-input { width:100%; background:transparent; border:none; color:var(--text);
+    font-size:21px; font-weight:700; outline:none; font-family:inherit; }
+  .config-input:focus { color:var(--gold); }
+  .toggle-row { display:flex; align-items:center; gap:10px; margin-bottom:20px; color:var(--muted2); font-size:13px; }
+  .toggle-row input { width:16px; height:16px; accent-color:var(--gold); cursor:pointer; }
+  .toggle-row label { cursor:pointer; }
+
+  .drop-zone { border:2px dashed var(--border2); border-radius:12px; padding:36px 20px; text-align:center;
+    cursor:pointer; transition:all .2s; background:var(--surface); margin-bottom:16px; }
+  .drop-zone:hover, .drop-zone.dragover { border-color:var(--gold); background:rgba(240,180,41,.04); }
+  .drop-icon { font-size:30px; margin-bottom:8px; }
+  .drop-title { font-size:16px; font-weight:500; margin-bottom:4px; }
+  .drop-sub { color:var(--muted2); font-size:13px; line-height:1.7; }
+  #browse-link { color:var(--gold); text-decoration:underline; cursor:pointer; }
+  #file-input { display:none; }
+
+  .file-row { display:grid; grid-template-columns:auto 1fr auto auto; gap:12px; align-items:center;
+    padding:11px 14px; background:var(--surface); border:1px solid var(--border);
+    border-radius:8px; margin-bottom:8px; font-size:13px; }
+  .badge { font-family:ui-monospace,monospace; font-size:10px; padding:3px 8px; border-radius:3px;
+    text-transform:uppercase; letter-spacing:.05em; font-weight:500; white-space:nowrap; }
+  .badge-periodic { background:rgba(74,158,255,.15); color:var(--blue); border:1px solid rgba(74,158,255,.3); }
+  .badge-ledger   { background:rgba(0,214,143,.15); color:var(--green); border:1px solid rgba(0,214,143,.3); }
+  .badge-roster   { background:rgba(255,92,92,.12); color:var(--red); border:1px solid rgba(255,92,92,.3); }
+  .badge-unknown  { background:rgba(136,146,164,.12); color:var(--muted2); border:1px solid var(--border2); }
+  .file-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; }
+  .file-meta { color:var(--muted); font-size:11px; font-family:ui-monospace,monospace; }
+  .rm-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; padding:2px 6px; }
+  .rm-btn:hover { color:var(--red); }
+
+  .run-btn { width:100%; padding:17px; background:linear-gradient(135deg,var(--gold),var(--gold2));
+    color:#000; border:none; border-radius:8px; font-size:17px; font-weight:700; letter-spacing:.02em;
+    cursor:pointer; transition:all .2s; margin:8px 0 24px; font-family:inherit; }
+  .run-btn:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 8px 24px rgba(240,180,41,.25); }
+  .run-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+  .msg { padding:12px 16px; border-radius:8px; font-size:13px; margin-bottom:12px; line-height:1.6; }
+  .msg-error { background:rgba(255,92,92,.08); border:1px solid rgba(255,92,92,.3); color:var(--red); }
+  .msg-note  { background:rgba(240,180,41,.06); border:1px solid rgba(240,180,41,.25); color:var(--gold2); }
+
+  #results { display:none; }
+  #results.show { display:block; }
+  .section-head { display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between;
+    align-items:center; margin:34px 0 16px; }
+  .section-title { font-size:21px; font-weight:700; }
+  .section-sub { color:var(--muted2); font-size:12px; font-family:ui-monospace,monospace; margin-top:4px; }
+  .btn { background:transparent; color:var(--gold); border:1px solid rgba(240,180,41,.4);
+    padding:9px 15px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;
+    transition:all .2s; font-family:inherit; }
+  .btn:hover { background:rgba(240,180,41,.08); border-color:var(--gold); }
+  .btn.copied { color:var(--green); border-color:var(--green); }
+
+  .kpi-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:18px; }
+  .kpi { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:13px 15px; }
+  .kpi-label { font-family:ui-monospace,monospace; font-size:9px; color:var(--muted2);
+    text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px; }
+  .kpi-value { font-size:19px; font-weight:700; }
+  .kpi-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+  .gold{color:var(--gold)} .green{color:var(--green)} .blue{color:var(--blue)}
+  .red{color:var(--red)} .purple{color:var(--purple)}
+
+  .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; padding:11px 13px; background:var(--surface2); font-family:ui-monospace,monospace;
+    font-size:10px; color:var(--muted2); text-transform:uppercase; letter-spacing:.08em;
+    font-weight:500; border-bottom:1px solid var(--border2); white-space:nowrap; }
+  td { padding:10px 13px; border-bottom:1px solid var(--border); white-space:nowrap; }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr.paid { background:rgba(240,180,41,.04); }
+  .num { text-align:right; }
+  th.num { text-align:right; }
+  .rank { color:var(--gold); font-weight:600; font-family:ui-monospace,monospace; }
+  .bonus-amt { color:var(--gold); font-weight:600; }
+  .capped::after { content:' ▲'; color:var(--red); font-size:9px; }
+  .pnl-house { color:var(--green); } .pnl-player { color:var(--red); }
+  .tag { font-family:ui-monospace,monospace; font-size:10px; color:var(--muted2);
+    border:1px solid var(--border2); padding:2px 6px; border-radius:3px; }
+
+  .group-card { background:var(--surface); border:1px solid var(--border); border-radius:8px;
+    margin-bottom:12px; overflow:hidden; }
+  .group-head { display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    padding:11px 14px; background:var(--surface2); border-bottom:1px solid var(--border); }
+  .group-name { font-weight:700; font-size:14px; }
+  .group-owed { margin-left:auto; font-family:ui-monospace,monospace; font-size:12px; }
+  .empty { padding:22px; color:var(--muted2); font-size:13px; text-align:center; line-height:1.7; }
+  footer { margin-top:40px; color:var(--muted); font-size:11px; line-height:1.8; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <span class="header-tag">Weekly Report</span>
+    <h1>Bonus <span>&amp;</span> Referrals</h1>
+    <p class="subtitle">Drop the periodic summary and the transaction ledger &middot; everything runs in this page, nothing is uploaded</p>
+  </header>
+
+  <div class="config-strip">
+    <div class="config-card"><div class="config-label">Prize Pool ($)</div>
+      <input class="config-input" type="number" id="pool" value="3000" min="0"></div>
+    <div class="config-card"><div class="config-label">Per-Account Cap ($)</div>
+      <input class="config-input" type="number" id="cap" value="500" min="0"></div>
+    <div class="config-card"><div class="config-label">Top % Eligible</div>
+      <input class="config-input" type="number" id="topPct" value="20" min="1" max="100"></div>
+    <div class="config-card"><div class="config-label">Minimum Paid</div>
+      <input class="config-input" type="number" id="floor" value="10" min="1"></div>
+    <div class="config-card"><div class="config-label">Commission %</div>
+      <input class="config-input" type="number" id="rate" value="20" min="0" max="100"></div>
+  </div>
+
+  <div class="toggle-row">
+    <input type="checkbox" id="include-casino">
+    <label for="include-casino">Include casino products (Betsoft, TFUSION, PLAYGLOBE) — excluded by default</label>
+  </div>
+
+  <div class="drop-zone" id="drop-zone">
+    <div class="drop-icon">📊</div>
+    <div class="drop-title">Drop this week's exports here</div>
+    <p class="drop-sub">Periodic summary (.xlsx) &middot; transaction ledger (.csv) &middot; any number of files<br>
+      <span id="browse-link">Browse files</span> &middot; accepts .xlsx and .csv</p>
+    <input type="file" id="file-input" multiple accept=".xlsx,.csv">
+  </div>
+
+  <div id="file-list"></div>
+  <div id="messages"></div>
+  <button class="run-btn" id="run-btn" disabled>Generate Weekly Report</button>
+
+  <div id="results">
+    <div class="section-head">
+      <div>
+        <div class="section-title">Bonus Leaderboard</div>
+        <div class="section-sub" id="bonus-sub"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="copy-json">Copy JSON</button>
+        <button class="btn" id="dl-csv">Download CSV</button>
+      </div>
+    </div>
+    <div class="kpi-strip" id="kpi-strip"></div>
+    <div class="table-wrap"><table id="bonus-table">
+      <thead><tr>
+        <th>#</th><th>Account</th><th>Agent</th>
+        <th class="num">Volume</th><th class="num">Share</th>
+        <th class="num">PreMatch</th><th class="num">InPlay</th>
+        <th class="num">Net P&amp;L</th><th class="num">Bonus</th><th>Referred by</th>
+      </tr></thead>
+      <tbody id="bonus-body"></tbody>
+    </table></div>
+
+    <div class="section-head">
+      <div>
+        <div class="section-title">Referral Commissions</div>
+        <div class="section-sub" id="ref-sub"></div>
+      </div>
+    </div>
+    <div id="referral-groups"></div>
+  </div>
+
+  <footer>
+    Volume totals each client's wins and losses across their bet types &middot;
+    P&amp;L is shown from the house's point of view &middot;
+    referral rows are read from the transaction ledger only.
+  </footer>
+</div>
+
+<script>
+// Generated by tools/build-html.js — edit lib/*.js, not this file.
+const PEF = (function () {
+  const registry = {};
+  const cache = {};
+  function require(id) {
+    const key = id.replace(/^\.\//, '');
+    if (cache[key]) return cache[key].exports;
+    const factory = registry[key];
+    if (!factory) throw new Error("Module not available in the browser build: " + id);
+    const module = { exports: {} };
+    cache[key] = module;
+    factory(module, module.exports, require);
+    return module.exports;
+  }
+  registry["fs"] = function () {
+    throw new Error("The browser build cannot use Node's fs module.");
+  };
+  registry["path"] = function () {
+    throw new Error("The browser build cannot use Node's path module.");
+  };
+  registry["zlib"] = function () {
+    throw new Error("The browser build cannot use Node's zlib module.");
+  };
+  registry["zip"] = function (module, exports, require) {
+    'use strict';
+    // Minimal ZIP reader — enough to pull entries out of an .xlsx (which is a zip
+    // of XML parts). Avoids a dependency on a spreadsheet library.
+    //
+    // Reading the entry table is separated from decompressing it: Node inflates
+    // synchronously via zlib, while the browser build has to go through the async
+    // DecompressionStream. Everything else about the format is shared.
+    
+    // Locate the End Of Central Directory record by scanning backwards for its
+    // signature. The trailing comment is almost always empty, so this exits fast.
+    function findEocd(view) {
+      const min = Math.max(0, view.byteLength - 0xffff - 22);
+      for (let i = view.byteLength - 22; i >= min; i--) {
+        if (view.getUint32(i, true) === 0x06054b50) return i;
+      }
+      throw new Error('Not a zip file (no end-of-central-directory record)');
+    }
+    
+    // Returns [{ name, method, raw }] with `raw` still compressed.
+    function readEntryTable(bytes) {
+      const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    
+      const eocd  = findEocd(view);
+      const count = view.getUint16(eocd + 10, true);
+      let offset  = view.getUint32(eocd + 16, true);
+      const entries = [];
+    
+      const decoder = new TextDecoder();
+      for (let i = 0; i < count; i++) {
+        if (view.getUint32(offset, true) !== 0x02014b50) break;
+        const method     = view.getUint16(offset + 10, true);
+        const compressed = view.getUint32(offset + 20, true);
+        const nameLen    = view.getUint16(offset + 28, true);
+        const extraLen   = view.getUint16(offset + 30, true);
+        const commentLen = view.getUint16(offset + 32, true);
+        const localPos   = view.getUint32(offset + 42, true);
+        const name = decoder.decode(data.subarray(offset + 46, offset + 46 + nameLen));
+    
+        // The local header repeats the name/extra with its own lengths, and the
+        // extra field can differ from the central one — always read it fresh.
+        const lNameLen  = view.getUint16(localPos + 26, true);
+        const lExtraLen = view.getUint16(localPos + 28, true);
+        const dataStart = localPos + 30 + lNameLen + lExtraLen;
+    
+        if (!name.endsWith('/')) {
+          entries.push({ name, method, raw: data.subarray(dataStart, dataStart + compressed) });
+        }
+        offset += 46 + nameLen + extraLen + commentLen;
+      }
+      return entries;
+    }
+    
+    // Node-only: inflate the whole archive up front. Returns { name: Buffer }.
+    function readEntries(bytes) {
+      const zlib = require('zlib');
+      const out = {};
+      for (const entry of readEntryTable(bytes)) {
+        out[entry.name] = entry.method === 0
+          ? Buffer.from(entry.raw)
+          : zlib.inflateRawSync(entry.raw);
+      }
+      return out;
+    }
+    
+    module.exports = { readEntryTable, readEntries };
+    
+  };
+  registry["sheet"] = function (module, exports, require) {
+    'use strict';
+    // Reads the activity export in either format the platform emits: the .csv or
+    // the .xlsx (an ag-grid export). Both yield the same array of row objects
+    // keyed by the header labels.
+    const { readEntries } = require('./zip');
+    
+    // Parts arrive as Buffers under Node and Uint8Arrays in the browser.
+    function decodeUtf8(bytes) {
+      if (bytes == null) return '';
+      if (typeof Buffer !== 'undefined' && Buffer.isBuffer(bytes)) return bytes.toString('utf8');
+      return new TextDecoder().decode(bytes);
+    }
+    
+    // ── CSV ──────────────────────────────────────────────────────────────────────
+    // Handles quoted fields, embedded commas/newlines and doubled quotes.
+    function parseCsv(text) {
+      if (text.charCodeAt(0) === 0xfeff) text = text.slice(1); // strip BOM
+      const rows = [];
+      let row = [], field = '', quoted = false;
+    
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (quoted) {
+          if (c === '"') {
+            if (text[i + 1] === '"') { field += '"'; i++; }
+            else quoted = false;
+          } else field += c;
+          continue;
+        }
+        if (c === '"')                     { quoted = true; }
+        else if (c === ',')                { row.push(field); field = ''; }
+        else if (c === '\n' || c === '\r') {
+          if (c === '\r' && text[i + 1] === '\n') i++;
+          row.push(field); field = '';
+          if (row.some(v => v !== '')) rows.push(row);
+          row = [];
+        }
+        else field += c;
+      }
+      row.push(field);
+      if (row.some(v => v !== '')) rows.push(row);
+      return rows;
+    }
+    
+    // ── XLSX ─────────────────────────────────────────────────────────────────────
+    const XML_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+    function unescapeXml(s) {
+      return s.replace(/&(?:#(\d+)|#x([0-9a-fA-F]+)|(\w+));/g, (m, dec, hex, name) => {
+        if (dec)  return String.fromCodePoint(parseInt(dec, 10));
+        if (hex)  return String.fromCodePoint(parseInt(hex, 16));
+        return name in XML_ENTITIES ? XML_ENTITIES[name] : m;
+      });
+    }
+    
+    // Concatenates the <t> runs inside a shared-string or inline-string element.
+    function textOf(xml) {
+      const parts = xml.match(/<t[^>]*>([\s\S]*?)<\/t>/g) || [];
+      return parts.map(p => unescapeXml(p.replace(/<t[^>]*>|<\/t>/g, ''))).join('');
+    }
+    
+    function columnIndex(ref) {
+      const letters = (ref.match(/^[A-Z]+/) || [''])[0];
+      let n = 0;
+      for (const ch of letters) n = n * 26 + (ch.charCodeAt(0) - 64);
+      return n - 1;
+    }
+    
+    // Takes the already-decompressed workbook parts, so it is shared by the Node
+    // and browser paths — only the decompression differs between them.
+    function parseXlsxParts(parts) {
+      const sharedXml = parts['xl/sharedStrings.xml'];
+      const shared = sharedXml
+        ? (decodeUtf8(sharedXml).match(/<si>[\s\S]*?<\/si>/g) || []).map(textOf)
+        : [];
+    
+      const sheetName = Object.keys(parts)
+        .filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n))
+        .sort()[0];
+      if (!sheetName) throw new Error('No worksheet found in workbook');
+      const sheet = decodeUtf8(parts[sheetName]);
+    
+      const rows = [];
+      for (const rowXml of sheet.match(/<row[^>]*>[\s\S]*?<\/row>/g) || []) {
+        const cells = [];
+        for (const cellXml of rowXml.match(/<c[^>]*(?:\/>|>[\s\S]*?<\/c>)/g) || []) {
+          const ref  = (cellXml.match(/\br="([A-Z]+\d+)"/) || [])[1];
+          const type = (cellXml.match(/\bt="([^"]+)"/)     || [])[1];
+          const idx  = ref ? columnIndex(ref) : cells.length;
+    
+          let value = '';
+          if (type === 's') {
+            const i = (cellXml.match(/<v>([\s\S]*?)<\/v>/) || [])[1];
+            value = i !== undefined ? (shared[Number(i)] ?? '') : '';
+          } else if (type === 'inlineStr') {
+            value = textOf(cellXml);
+          } else {
+            const v = (cellXml.match(/<v>([\s\S]*?)<\/v>/) || [])[1];
+            value = v !== undefined ? unescapeXml(v) : '';
+          }
+          while (cells.length < idx) cells.push('');
+          cells[idx] = value;
+        }
+        if (cells.some(v => v !== '')) rows.push(cells);
+      }
+      return rows;
+    }
+    
+    function parseXlsx(bytes) {
+      return parseXlsxParts(readEntries(bytes));
+    }
+    
+    // ── Shared ───────────────────────────────────────────────────────────────────
+    // Turns a header row + data rows into objects. Duplicate or blank headers are
+    // given positional names so no column is silently dropped.
+    function toObjects(rows) {
+      if (!rows.length) return [];
+      const seen = new Set();
+      const headers = rows[0].map((h, i) => {
+        let name = String(h).trim() || `column_${i + 1}`;
+        while (seen.has(name)) name = `${name}_${i + 1}`;
+        seen.add(name);
+        return name;
+      });
+      return rows.slice(1).map(cells => {
+        const obj = {};
+        headers.forEach((h, i) => { obj[h] = cells[i] ?? ''; });
+        return obj;
+      });
+    }
+    
+    // Node only — required lazily so the browser build, which never reads from
+    // disk, does not pull in fs and path just by loading this module.
+    function readFile(file) {
+      const fs   = require('fs');
+      const path = require('path');
+      const buf = fs.readFileSync(file);
+      const ext = path.extname(file).toLowerCase();
+      const rows = ext === '.xlsx' || ext === '.xlsm'
+        ? parseXlsx(buf)
+        : parseCsv(buf.toString('utf8'));
+      return toObjects(rows);
+    }
+    
+    module.exports = { readFile, parseCsv, parseXlsx, parseXlsxParts, toObjects, decodeUtf8 };
+    
+  };
+  registry["ledger"] = function (module, exports, require) {
+    'use strict';
+    // Normalizes the platform's transaction ledger into per-player totals and
+    // referral edges. The ledger is one row per event; everything downstream works
+    // off the aggregates this produces.
+    
+    const TX = {
+      WAGER_PLACED:  'Wager Placed',
+      WAGER_GRADED:  'Wager Graded',
+      CREDIT_ADJUST: 'Credit Adjustment',
+      PROMO_CREDIT:  'Promotional Credit',
+      CARRYOVER:     'Balance Carryover',
+      WITHDRAWAL:    'Withdrawal (Processor)',
+    };
+    
+    // Only wagers move volume or P&L. Promotional credits, manual adjustments,
+    // carryover balances and withdrawals are deliberately excluded — a referrer's
+    // commission is calculated on their clients' betting losses alone.
+    const VOLUME_TYPES = new Set([TX.WAGER_PLACED]);
+    const PNL_TYPES    = new Set([TX.WAGER_PLACED, TX.WAGER_GRADED]);
+    
+    // Rows whose account column holds a total or a repeated header rather than a
+    // real player.
+    const SKIP_ACCOUNTS = new Set([
+      'total', 'totals', 'grand total', 'subtotal',
+      'account', 'accounts', 'player', 'customer',
+    ]);
+    
+    function cleanStr(v) { return String(v ?? '').trim(); }
+    
+    function num(v) {
+      if (typeof v === 'number') return v;
+      const s = cleanStr(v).replace(/[$,\s]/g, '');
+      if (!s) return 0;
+      // Accounting-style negatives: (12.34)
+      const parenthesized = /^\((.*)\)$/.exec(s);
+      const n = parseFloat(parenthesized ? parenthesized[1] : s);
+      if (!Number.isFinite(n)) return 0;
+      return parenthesized ? -n : n;
+    }
+    
+    // The export writes dates as MM/DD/YY. Returns a Date at UTC midnight, or null.
+    function parseDate(v) {
+      const s = cleanStr(v);
+      let m = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(s);
+      if (m) {
+        const year = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
+        return new Date(Date.UTC(year, Number(m[1]) - 1, Number(m[2])));
+      }
+      m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+      if (m) return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+      return null;
+    }
+    
+    function fmtDate(d) {
+      if (!d) return null;
+      const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const dd = String(d.getUTCDate()).padStart(2, '0');
+      return `${mm}-${dd}-${d.getUTCFullYear()}`;
+    }
+    
+    // Case-insensitive header lookup: exact match first, then substring, so the
+    // report survives minor relabelling in the export.
+    function findColumn(row, candidates) {
+      const keys = Object.keys(row);
+      for (const c of candidates) {
+        const hit = keys.find(k => k.toLowerCase().trim() === c.toLowerCase());
+        if (hit) return hit;
+      }
+      for (const c of candidates) {
+        const hit = keys.find(k => k.toLowerCase().includes(c.toLowerCase()));
+        if (hit) return hit;
+      }
+      return null;
+    }
+    
+    const COLUMNS = {
+      player:  ['player', 'customer', 'account', 'username', 'client'],
+      type:    ['type', 'transaction type'],
+      credit:  ['credit'],
+      debit:   ['debit'],
+      date:    ['date'],
+      details: ['details', 'detail', 'notes', 'description'],
+      agent:   ['agent'],
+      id:      ['id', 'transaction id'],
+    };
+    
+    // Flattens raw export rows (from one or many files) into normalized
+    // transactions. Rows without a recognisable player are dropped.
+    function parseTransactions(rows) {
+      if (!rows.length) return [];
+      const cols = {};
+      for (const [key, names] of Object.entries(COLUMNS)) {
+        cols[key] = findColumn(rows[0], names);
+      }
+      if (!cols.player) throw new Error('No player/account column found in export');
+      if (!cols.type)   throw new Error('No transaction type column found in export');
+    
+      const out = [];
+      for (const row of rows) {
+        const player = cleanStr(row[cols.player]);
+        if (!player || SKIP_ACCOUNTS.has(player.toLowerCase())) continue;
+        out.push({
+          player,
+          key:     player.toUpperCase(),
+          type:    cleanStr(row[cols.type]),
+          credit:  cols.credit  ? num(row[cols.credit]) : 0,
+          debit:   cols.debit   ? num(row[cols.debit])  : 0,
+          date:    cols.date    ? parseDate(row[cols.date]) : null,
+          details: cols.details ? cleanStr(row[cols.details]) : '',
+          agent:   cols.agent   ? cleanStr(row[cols.agent]) : '',
+          id:      cols.id      ? cleanStr(row[cols.id]) : '',
+        });
+      }
+      return out;
+    }
+    
+    // Per-player betting totals.
+    //   volume = total staked
+    //   pnl    = payouts - stakes, from the house's point of view:
+    //            negative means the house won and commission may be owed.
+    function aggregatePlayers(transactions) {
+      const players = new Map();
+    
+      for (const tx of transactions) {
+        let rec = players.get(tx.key);
+        if (!rec) {
+          rec = {
+            player: tx.player, key: tx.key, agent: tx.agent || null,
+            volume: 0, staked: 0, returned: 0, pnl: 0,
+            bets: 0, firstDate: null, lastDate: null,
+          };
+          players.set(tx.key, rec);
+        }
+        if (!rec.agent && tx.agent) rec.agent = tx.agent;
+    
+        if (tx.date) {
+          if (!rec.firstDate || tx.date < rec.firstDate) rec.firstDate = tx.date;
+          if (!rec.lastDate  || tx.date > rec.lastDate)  rec.lastDate  = tx.date;
+        }
+    
+        if (VOLUME_TYPES.has(tx.type)) {
+          rec.volume += Math.abs(tx.debit);
+          rec.staked += Math.abs(tx.debit);
+          rec.bets   += 1;
+        }
+        if (PNL_TYPES.has(tx.type) && tx.type === TX.WAGER_GRADED) {
+          rec.returned += tx.credit;
+        }
+      }
+    
+      for (const rec of players.values()) rec.pnl = rec.returned - rec.staked;
+      return players;
+    }
+    
+    // Referral edges live on the referrer's own ledger: a credit row whose details
+    // read "Referred <CODE>". One referrer can have many such rows.
+    const REFERRAL_PATTERN = /^referred\s+([A-Za-z0-9_-]{2,32})\b/i;
+    
+    function parseReferrals(transactions) {
+      const edges = [];
+      const seen  = new Set();
+    
+      for (const tx of transactions) {
+        const m = REFERRAL_PATTERN.exec(tx.details);
+        if (!m) continue;
+        const referred = m[1].toUpperCase();
+        if (referred === tx.key) continue;           // self-referral, ignore
+        const dedupe = `${tx.key}->${referred}`;
+        if (seen.has(dedupe)) continue;              // one edge per pair
+        seen.add(dedupe);
+        edges.push({
+          referrer:     tx.player,
+          referrerKey:  tx.key,
+          referred:     m[1],
+          referredKey:  referred,
+          bonusPaid:    tx.credit,      // recorded for reference only
+          bonusType:    tx.type,
+          date:         tx.date,
+        });
+      }
+      return edges;
+    }
+    
+    // Reporting week, taken from the data: ends on the latest transaction date and
+    // runs back six days, matching how the weekly files were always cut.
+    function weekRange(transactions, { today = new Date() } = {}) {
+      const dates = transactions.map(t => t.date).filter(Boolean);
+      const end = dates.length
+        ? new Date(Math.max(...dates.map(d => d.getTime())))
+        : new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+      const start = new Date(end);
+      start.setUTCDate(end.getUTCDate() - 6);
+      return { start, end, weekStart: fmtDate(start), weekEnd: fmtDate(end) };
+    }
+    
+    // One-shot: raw rows in, everything the reports need out.
+    function loadLedger(rows) {
+      const transactions = parseTransactions(rows);
+      return {
+        transactions,
+        players:   aggregatePlayers(transactions),
+        referrals: parseReferrals(transactions),
+        week:      weekRange(transactions),
+      };
+    }
+    
+    module.exports = {
+      TX, VOLUME_TYPES, PNL_TYPES,
+      num, parseDate, fmtDate, findColumn,
+      parseTransactions, aggregatePlayers, parseReferrals, weekRange, loadLedger,
+    };
+    
+  };
+  registry["periodic"] = function (module, exports, require) {
+    'use strict';
+    // Reads the periodic (weekly) summary export — the hierarchical P&L grid whose
+    // Group column is an indented tree:
+    //
+    //     -> BITCOINBAY                     agent group
+    //     -> BITCOINBAY -> BTCB50           account
+    //     -> BITCOINBAY -> BTCB50 -> PreMatch   bet type
+    //
+    // Unlike the transaction ledger this covers the whole book and breaks P&L down
+    // by bet type, but it carries no wagering volume.
+    
+    const { num, parseDate, fmtDate } = require('./ledger');
+    
+    // The bet-type leaves the platform emits, mapped onto the categories the
+    // reports have always used.
+    const BET_TYPES = {
+      PreMatch:  'sports',
+      InPlay:    'live',
+      Betsoft:   'casino',
+      TFUSION:   'casino',
+      PLAYGLOBE: 'casino',
+    };
+    const CATEGORIES = ['sports', 'live', 'casino', 'other'];
+    
+    // Casino products are excluded from the reports: the bonus leaderboard and the
+    // referral commission are both sportsbook programmes, so casino action neither
+    // ranks a client nor earns a referrer anything.
+    //
+    // PreMatch and InPlay are unambiguously sportsbook. Of the three below, only
+    // Betsoft is a recognised casino provider by name — TFUSION and PLAYGLOBE were
+    // classified by inference, not from anything the export states. If either turns
+    // out to be a sportsbook product, move it out of this list and the figures
+    // follow automatically.
+    const EXCLUDED_BET_TYPES = ['Betsoft', 'TFUSION', 'PLAYGLOBE'];
+    
+    function categoryOf(betType) {
+      return BET_TYPES[betType] || 'other';
+    }
+    
+    function isExcluded(betType, excluded) {
+      return excluded.some(name => name.toLowerCase() === String(betType).toLowerCase());
+    }
+    
+    function pathOf(group) {
+      return String(group ?? '').split('->').map(s => s.trim()).filter(Boolean);
+    }
+    
+    // The week is the header of the amount column, e.g. "08/31/26 - 09/06/26".
+    function findWeekColumn(row) {
+      const keys = Object.keys(row);
+      const dated = keys.find(k => /\d{1,2}\/\d{1,2}\/\d{2,4}\s*-\s*\d{1,2}\/\d{1,2}\/\d{2,4}/.test(k));
+      return dated || null;
+    }
+    
+    function parseWeekHeader(header) {
+      const m = /(\d{1,2}\/\d{1,2}\/\d{2,4})\s*-\s*(\d{1,2}\/\d{1,2}\/\d{2,4})/.exec(header || '');
+      if (!m) return null;
+      const start = parseDate(m[1]);
+      const end   = parseDate(m[2]);
+      if (!start || !end) return null;
+      return { start, end, weekStart: fmtDate(start), weekEnd: fmtDate(end) };
+    }
+    
+    // Parses the grid into one record per account.
+    //
+    // Three quirks of this export are handled here, all verified across the whole
+    // file rather than assumed:
+    //
+    //  1. Every bet-type row is followed by a row with an empty Group that repeats
+    //     the same figures. Counting those would double every total, so rows
+    //     without a Group are dropped.
+    //  2. The column headed with the week range is the negated, truncated form of
+    //     the `Total` column. `Total` carries the sign and the precision, so P&L is
+    //     read from there and the week column is ignored.
+    //  3. `Pending` and `End Balance` are account-level values repeated on each of
+    //     the account's bet-type rows, which the grid then sums into the account
+    //     row — inflating both by the number of bet types. The de-duplicated leaf
+    //     value is reported as the true figure.
+    function parsePeriodic(rows, options = {}) {
+      // Pass `exclude: []` to keep every product — used by the structural checks,
+      // which must reconcile against the export's own untouched totals.
+      const excluded = options.exclude ?? EXCLUDED_BET_TYPES;
+      if (!rows.length) return { accounts: new Map(), week: null, groups: [] };
+    
+      const weekColumn = findWeekColumn(rows[0]);
+      const week = parseWeekHeader(weekColumn);
+    
+      const accounts = new Map();
+      const groups   = new Set();
+    
+      for (const row of rows) {
+        const path = pathOf(row.Group);
+        if (!path.length) continue;                    // quirk 1: duplicate row
+        if (path.length === 1 && path[0] === 'Total') continue;  // grand total row
+    
+        const [group, account, betType] = path;
+    
+        if (path.length === 1) { groups.add(group); continue; }
+    
+        const key = account.toUpperCase();
+        let rec = accounts.get(key);
+        if (!rec) {
+          rec = {
+            account, key, group,
+            pnl: 0,                                    // quirk 2: read from Total
+            byCategory: Object.fromEntries(CATEGORIES.map(c => [c, 0])),
+            betTypes: {},                              // products that count
+            excludedBetTypes: {},                      // products that do not
+            excludedPnl: 0,
+            reportedPnl: 0,                            // the account row, untouched
+            depositsWithdrawals: 0,
+            pending: 0,
+            endBalance: 0,
+            pendingReported: 0,
+            endBalanceReported: 0,
+          };
+          accounts.set(key, rec);
+          groups.add(group);
+        }
+    
+        if (path.length === 2) {
+          // Recomputed below from the products that count, so the account row is
+          // kept only for reference — it always includes everything.
+          rec.reportedPnl = num(row.Total);
+          rec.depositsWithdrawals = num(row['Dep/With']);
+          // Keep what the grid claimed, so the inflation stays auditable.
+          rec.pendingReported    = num(row.Pending);
+          rec.endBalanceReported = num(row['End Balance']);
+        } else if (path.length === 3) {
+          const amount = num(row.Total);
+          if (isExcluded(betType, excluded)) {
+            rec.excludedBetTypes[betType] = (rec.excludedBetTypes[betType] || 0) + amount;
+            rec.excludedPnl += amount;
+          } else {
+            rec.byCategory[categoryOf(betType)] += amount;
+            rec.betTypes[betType] = (rec.betTypes[betType] || 0) + amount;
+            rec.pnl += amount;
+          }
+          // quirk 3: every leaf repeats the same account-level figure.
+          rec.pending    = num(row.Pending);
+          rec.endBalance = num(row['End Balance']);
+        }
+      }
+    
+      return { accounts, week, weekColumn, groups: [...groups], excluded };
+    }
+    
+    // Consistency checks worth running on each new export — if the platform changes
+    // the grid, these fail loudly rather than producing quietly wrong money.
+    function verifyPeriodic(rows) {
+      const issues = [];
+      const weekColumn = findWeekColumn(rows[0] || {});
+      if (!weekColumn) issues.push('No week-range column found in the header.');
+    
+      const withGroup = rows.filter(r => pathOf(r.Group).length > 0);
+      const blank     = rows.length - withGroup.length;
+      const leaves    = withGroup.filter(r => pathOf(r.Group).length === 3);
+      if (blank !== leaves.length) {
+        issues.push(`Expected one blank duplicate row per bet-type row, `
+          + `found ${blank} blank vs ${leaves.length} bet-type rows.`);
+      }
+    
+      for (const row of withGroup) {
+        const path = pathOf(row.Group);
+        if (path.length < 2 || !weekColumn) continue;
+        const total = num(row.Total);
+        const shown = num(row[weekColumn]);
+        if (Math.abs(shown - (-Math.trunc(total))) > 1.001) {
+          issues.push(`${row.Group.trim()}: week column ${shown} is not the negated `
+            + `Total ${total} — the sign convention may have changed.`);
+        }
+      }
+    
+      // Reconcile with nothing excluded — this checks the file, not the policy.
+      const { accounts } = parsePeriodic(rows, { exclude: [] });
+      for (const rec of accounts.values()) {
+        const summed = CATEGORIES.reduce((s, c) => s + rec.byCategory[c], 0);
+        if (Math.abs(summed - rec.reportedPnl) > 0.01) {
+          issues.push(`${rec.account}: bet-type rows sum to ${summed.toFixed(2)} `
+            + `but the account row says ${rec.reportedPnl.toFixed(2)}.`);
+        }
+      }
+      return issues;
+    }
+    
+    module.exports = { BET_TYPES, CATEGORIES, EXCLUDED_BET_TYPES, categoryOf, isExcluded, parsePeriodic, verifyPeriodic, parseWeekHeader, findWeekColumn };
+    
+  };
+  registry["bonus"] = function (module, exports, require) {
+    'use strict';
+    // Weekly bonus leaderboard: splits a fixed prize pool across the top slice of
+    // qualifying accounts, weighted by whichever metric the leaderboard ranks on
+    // and capped per account.
+    
+    // How an account earns its place.
+    //
+    // `total_pnl` totals each client's wins and losses across their bet types, so a
+    // client who won 500 on PreMatch and lost 400 InPlay counts for 900, not 100.
+    // It measures how much action a client put through, which is what the
+    // leaderboard has always rewarded.
+    //
+    // The other two exist for comparison: `abs_pnl` nets a client's bet types before
+    // taking the magnitude, and `wagered` is the original basis, which needs
+    // transaction-ledger files since only they carry the amount staked.
+    const METRICS = {
+      total_pnl: {
+        key:   'total_pnl',
+        label: 'Volume',
+        of:    account => {
+          const perType = account.betTypes && Object.keys(account.betTypes).length
+            ? Object.values(account.betTypes)
+            : null;
+          // Without a bet-type breakdown the netted figure is all there is.
+          return perType
+            ? perType.reduce((sum, amount) => sum + Math.abs(amount), 0)
+            : Math.abs(account.pnl ?? 0);
+        },
+        note:  "each client's wins and losses totalled across their bet types",
+      },
+      abs_pnl: {
+        key:   'abs_pnl',
+        label: '|Net P&L|',
+        of:    account => Math.abs(account.pnl ?? 0),
+        note:  'the size of the net swing, after a client\'s bet types cancel out',
+      },
+      wagered: {
+        key:   'wagered',
+        label: 'Wagered',
+        of:    account => account.volume ?? 0,
+        note:  'amount staked (needs ledger exports)',
+      },
+    };
+    
+    const DEFAULTS = {
+      pool:       3000,       // total prize pool, in dollars
+      cap:         500,       // most any single account can receive
+      topPct:     0.20,       // share of qualifying accounts that are eligible
+      minEligible: 10,        // hard floor: always at least this many, if available
+      basis:      'total_pnl',// which metric ranks and weights the leaderboard
+    };
+    
+    // Spreads `pool` across `weights` in proportion, then applies the per-account
+    // cap and re-spreads the overflow among those still under it. Repeats until the
+    // leftover is negligible or everyone is capped.
+    function distribute(weights, pool, cap) {
+      const total = weights.reduce((sum, w) => sum + w, 0);
+      if (total <= 0) return weights.map(() => 0);
+    
+      const awards = weights.map(w => Math.min((w / total) * pool, cap));
+      let excess = pool - awards.reduce((sum, a) => sum + a, 0);
+    
+      for (let pass = 0; pass < 20 && excess > 0.005; pass++) {
+        const openIdx = awards
+          .map((a, i) => (a < cap - 1e-9 ? i : -1))
+          .filter(i => i >= 0);
+        if (!openIdx.length) break;
+    
+        const openWeight = openIdx.reduce((sum, i) => sum + weights[i], 0);
+        if (openWeight <= 0) break;
+    
+        let carried = 0;
+        for (const i of openIdx) {
+          const share  = (weights[i] / openWeight) * excess;
+          const capped = Math.min(awards[i] + share, cap);
+          carried += awards[i] + share - capped;
+          awards[i] = capped;
+        }
+        excess = carried;
+      }
+      return awards;
+    }
+    
+    // `accounts` is the Map produced by ledger.aggregatePlayers or load.load.
+    function buildBonusReport(accounts, options = {}) {
+      const config = { ...DEFAULTS, ...options };
+      const metric = METRICS[config.basis];
+      if (!metric) {
+        throw new Error(`Unknown ranking basis "${config.basis}". `
+          + `Expected one of: ${Object.keys(METRICS).join(', ')}.`);
+      }
+    
+      const all = [...accounts.values()];
+      for (const account of all) account.metricValue = metric.of(account);
+    
+      // An account with nothing to rank on takes no part in the leaderboard.
+      const active   = all.filter(a => a.metricValue > 0).sort((a, b) => b.metricValue - a.metricValue);
+      const inactive = all.filter(a => a.metricValue <= 0);
+    
+      if (!active.length) {
+        throw new Error(`No qualifying accounts — every account has zero ${metric.label}.`);
+      }
+    
+      // Top slice, but never fewer than the floor (or than we actually have).
+      const eligibleCount = Math.min(
+        active.length,
+        Math.max(config.minEligible, Math.ceil(active.length * config.topPct)),
+      );
+      const eligible   = active.slice(0, eligibleCount);
+      const ineligible = active.slice(eligibleCount);
+    
+      const awards = distribute(eligible.map(a => a.metricValue), config.pool, config.cap);
+      eligible.forEach((a, i) => { a.bonus = awards[i]; });
+      ineligible.forEach(a => { a.bonus = 0; });
+      inactive.forEach(a => { a.bonus = 0; });
+    
+      const totalPaid      = awards.reduce((sum, a) => sum + a, 0);
+      const eligibleWeight = eligible.reduce((sum, a) => sum + a.metricValue, 0);
+      // Wins and losses are added together rather than netted: an account that won
+      // 400 and one that lost 400 each contribute 400, so the book total reflects
+      // the whole week's action. Netting them would cancel to nearly nothing.
+      const totalWeight    = all.reduce((sum, a) => sum + a.metricValue, 0);
+    
+      return {
+        config, metric,
+        all, active, inactive, eligible, ineligible,
+        awards,
+        eligibleCount,
+        eligibleWeight,
+        activeWeight: active.reduce((sum, a) => sum + a.metricValue, 0),
+        // The book-wide total, wins and losses added together.
+        totalWeight,
+        // The same figure netted, which is what the export's own grand-total row
+        // reports. Kept so the two can be reconciled rather than confused.
+        netPnl: all.reduce((sum, a) => sum + (a.pnl ?? 0), 0),
+        // The metric value of the last account to make the cut — anything below
+        // this missed out.
+        threshold: eligible.length ? eligible[eligible.length - 1].metricValue : 0,
+        totalPaid,
+        // The cap limits the eligible set to `count x cap` in total. With a small
+        // set that ceiling can sit below the pool, leaving part of it unpayable —
+        // surfaced here rather than silently vanishing.
+        unpaid: Math.max(0, config.pool - totalPaid),
+        payoutCeiling: eligible.length * config.cap,
+      };
+    }
+    
+    // The payload shape the leaderboard collection already stores. `volume_threshold`
+    // keeps its name so existing consumers do not break, but it now carries the
+    // cutoff for whichever metric ranked the board — `threshold_basis` says which.
+    function toPayload(report, week, { limit = 10, generatedAt = new Date() } = {}) {
+      return {
+        generated_at:     generatedAt.toISOString(),
+        week_start:       week.weekStart,
+        week_end:         week.weekEnd,
+        volume_threshold: Math.round(report.threshold),
+        threshold_basis:  report.metric.key,
+        // Wins and losses added together, not netted.
+        total_volume:     Math.round(report.totalWeight),
+        net_pnl:          Math.round(report.netPnl),
+        bonuses: report.eligible.slice(0, limit).map((account, i) => ({
+          rank:    i + 1,
+          account: account.player ?? account.account,
+        })),
+      };
+    }
+    
+    module.exports = { METRICS, DEFAULTS, distribute, buildBonusReport, toPayload };
+    
+  };
+  registry["referrals"] = function (module, exports, require) {
+    'use strict';
+    // Weekly referral commission: each referrer earns a share of what their
+    // referred clients lost over the week.
+    
+    const DEFAULTS = {
+      commissionRate: 0.20,   // share of a group's net losses paid to the referrer
+    };
+    
+    // `players` is the Map from ledger.aggregatePlayers; `edges` the array from
+    // ledger.parseReferrals. Referred accounts with no activity this week are kept
+    // and reported at zero, so a referrer's roster stays visible week to week.
+    function buildReferralReport(players, edges, options = {}) {
+      const config = { ...DEFAULTS, ...options };
+      const groups = new Map();
+    
+      for (const edge of edges) {
+        let group = groups.get(edge.referrerKey);
+        if (!group) {
+          group = { referrer: edge.referrer, referrerKey: edge.referrerKey, clients: [] };
+          groups.set(edge.referrerKey, group);
+        }
+        const activity = players.get(edge.referredKey);
+        group.clients.push({
+          account:  activity ? activity.player : edge.referred,
+          key:      edge.referredKey,
+          volume:   activity ? activity.volume : 0,
+          pnl:      activity ? activity.pnl    : 0,
+          bets:     activity ? activity.bets   : 0,
+          hasActivity: Boolean(activity),
+          bonusPaid: edge.bonusPaid,
+        });
+      }
+    
+      for (const group of groups.values()) {
+        group.clients.sort((a, b) => b.volume - a.volume);
+        group.volume = group.clients.reduce((sum, c) => sum + c.volume, 0);
+        // Negative P&L means the house won; only then is commission owed.
+        group.pnl        = group.clients.reduce((sum, c) => sum + c.pnl, 0);
+        group.commission = group.pnl < 0 ? Math.abs(group.pnl) * config.commissionRate : 0;
+        group.clientCount = group.clients.length;
+        group.activeClientCount = group.clients.filter(c => c.hasActivity).length;
+      }
+    
+      // Referrers owed commission first, then by volume.
+      const sorted = [...groups.values()].sort((a, b) => {
+        if ((a.commission > 0) !== (b.commission > 0)) return a.commission > 0 ? -1 : 1;
+        if (b.commission !== a.commission) return b.commission - a.commission;
+        return b.volume - a.volume;
+      });
+    
+      return {
+        config,
+        groups: sorted,
+        referrerCount:  sorted.length,
+        clientCount:    sorted.reduce((sum, g) => sum + g.clientCount, 0),
+        totalVolume:    sorted.reduce((sum, g) => sum + g.volume, 0),
+        totalPnl:       sorted.reduce((sum, g) => sum + g.pnl, 0),
+        totalCommission: sorted.reduce((sum, g) => sum + g.commission, 0),
+      };
+    }
+    
+    // Per-client rows followed by a subtotal per referrer. The payable figure is
+    // the subtotal: it nets a referrer's winning clients against their losing ones,
+    // so summing the per-client column overstates what is actually owed.
+    function toCsv(report) {
+      const rate = report.config.commissionRate;
+      const rows = [['Referrer', 'Account', 'Total Volume', 'Win/Loss', 'Client Loss Share', 'Commission Payable']];
+    
+      for (const group of report.groups) {
+        for (const client of group.clients) {
+          rows.push([
+            group.referrer,
+            client.account,
+            client.volume.toFixed(2),
+            client.pnl.toFixed(2),
+            client.pnl < 0 ? (Math.abs(client.pnl) * rate).toFixed(2) : '',
+            '',
+          ]);
+        }
+        rows.push([
+          group.referrer,
+          'SUBTOTAL',
+          group.volume.toFixed(2),
+          group.pnl.toFixed(2),
+          '',
+          group.commission.toFixed(2),
+        ]);
+      }
+      return rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    }
+    
+    module.exports = { DEFAULTS, buildReferralReport, toCsv };
+    
+  };
+  registry["load"] = function (module, exports, require) {
+    'use strict';
+    // Loads a mixed set of exports and merges them into one view of the week.
+    //
+    // The platform emits two shapes, and the reports need both:
+    //
+    //   transaction ledger   per-player rows; the only source of wagering VOLUME,
+    //                        and where referral edges live
+    //   periodic summary     the whole book's P&L, broken down by bet type, but
+    //                        with no volume
+    //
+    // Whichever files are supplied, this returns a single account map plus the
+    // referral edges found.
+    
+    const { readFile }        = require('./sheet');
+    const { loadLedger }      = require('./ledger');
+    const { parsePeriodic, verifyPeriodic, CATEGORIES, EXCLUDED_BET_TYPES } = require('./periodic');
+    
+    function classify(rows) {
+      if (!rows.length) return 'empty';
+      const keys = Object.keys(rows[0]).map(k => k.toLowerCase().trim());
+      const has = name => keys.includes(name);
+    
+      if (has('group')) return 'periodic';
+      // A transaction ledger is one row per event, so it must say what each event
+      // was. The player roster also has a Player column but no transactions —
+      // distinguishing them stops a roster being parsed as activity.
+      if ((has('player') || has('customer')) && (has('type') || has('credit') || has('debit'))) {
+        return 'ledger';
+      }
+      if (has('player') && (has('creation time') || has('player id') || has('email'))) {
+        return 'roster';
+      }
+      return 'unknown';
+    }
+    
+    function emptyAccount(name, key) {
+      return {
+        player: name, key, account: name,
+        group: null, agent: null,
+        volume: 0, staked: 0, returned: 0, bets: 0,
+        pnl: 0,
+        byCategory: Object.fromEntries(CATEGORIES.map(c => [c, 0])),
+        betTypes: {},
+        excludedBetTypes: {},
+        excludedPnl: 0,
+        reportedPnl: null,
+        referredBy: null,
+        referred: null,
+        sources: [],
+        // Realized P&L from the ledger, kept apart from the periodic figure: the
+        // ledger only reflects graded wagers, so the two differ while bets are open.
+        ledgerPnl: null,
+        periodicPnl: null,
+        pending: 0,
+        endBalance: null,
+      };
+    }
+    
+    // Merges already-parsed exports. `entries` is [{ name, rows }] — the browser
+    // build calls this directly with rows it parsed itself, so the merge and every
+    // rule below it are shared with the CLI rather than reimplemented.
+    function loadRows(entries, options = {}) {
+      // `includeExcluded: true` keeps casino products in, for comparison.
+      const exclude = options.includeExcluded ? [] : (options.exclude ?? EXCLUDED_BET_TYPES);
+      const accounts  = new Map();
+      const referrals = [];
+      const warnings  = [];
+      const seen      = { ledger: 0, periodic: 0, roster: 0 };
+      let week = null;
+    
+      const get = (name, key) => {
+        let rec = accounts.get(key);
+        if (!rec) { rec = emptyAccount(name, key); accounts.set(key, rec); }
+        return rec;
+      };
+    
+      for (const { name: file, rows } of entries) {
+        const kind = classify(rows);
+    
+        if (kind === 'periodic') {
+          seen.periodic++;
+          for (const issue of verifyPeriodic(rows)) warnings.push(`${file}: ${issue}`);
+          const parsed = parsePeriodic(rows, { exclude });
+          if (parsed.week && !week) week = parsed.week;
+    
+          for (const rec of parsed.accounts.values()) {
+            const target = get(rec.account, rec.key);
+            target.group       = rec.group;
+            target.agent       = target.agent || rec.group;
+            target.periodicPnl = rec.pnl;
+            target.pnl         = rec.pnl;          // authoritative for the week
+            target.byCategory  = rec.byCategory;
+            target.betTypes    = rec.betTypes;
+            target.excludedBetTypes = rec.excludedBetTypes;
+            target.excludedPnl = rec.excludedPnl;
+            target.reportedPnl = rec.reportedPnl;
+            target.pending     = rec.pending;
+            target.endBalance  = rec.endBalance;
+            if (!target.sources.includes('periodic')) target.sources.push('periodic');
+          }
+          continue;
+        }
+    
+        if (kind === 'ledger') {
+          seen.ledger++;
+          const parsed = loadLedger(rows);
+          if (parsed.week && !week) week = parsed.week;
+          referrals.push(...parsed.referrals);
+    
+          for (const rec of parsed.players.values()) {
+            const target = get(rec.player, rec.key);
+            target.agent    = target.agent || rec.agent;
+            target.volume  += rec.volume;
+            target.staked  += rec.staked;
+            target.returned += rec.returned;
+            target.bets    += rec.bets;
+            target.ledgerPnl = (target.ledgerPnl ?? 0) + rec.pnl;
+            // Only fall back to the ledger's P&L when no periodic figure exists.
+            if (target.periodicPnl === null) target.pnl = target.ledgerPnl;
+            if (!target.sources.includes('ledger')) target.sources.push('ledger');
+          }
+          continue;
+        }
+    
+        if (kind === 'roster') {
+          seen.roster++;
+          warnings.push(`${file}: this is the player roster (account details), not activity. `
+            + 'It carries no P&L, volume or referral rows, so nothing in it feeds the reports — '
+            + 'skipped. It does contain personal data; keep it out of the repo.');
+          continue;
+        }
+        warnings.push(`${file}: unrecognised export — expected the periodic summary `
+          + '(a Group column) or the transaction ledger (Player plus Type).');
+      }
+    
+      // Referral edges name accounts that may only appear in the periodic file;
+      // make sure every one of them exists so the report can list it.
+      for (const edge of referrals) {
+        const referred = accounts.get(edge.referredKey) ?? get(edge.referred, edge.referredKey);
+        const referrer = accounts.get(edge.referrerKey) ?? get(edge.referrer, edge.referrerKey);
+        // Cross-link both directions so the leaderboard can show a client's
+        // referrer without re-walking the edge list.
+        referred.referredBy = referrer.player ?? referrer.account;
+        (referrer.referred ??= []).push(referred.player ?? referred.account);
+      }
+    
+      // Volume only exists in the ledger. That matters when the leaderboard is
+      // ranked on volume; ranking on P&L needs only the periodic summary. The
+      // caller picks the basis, so state the gap rather than predict the effect.
+      const withoutVolume = [...accounts.values()]
+        .filter(a => a.sources.includes('periodic') && !a.sources.includes('ledger'));
+      if (withoutVolume.length) {
+        warnings.push(`${withoutVolume.length} of ${accounts.size} account(s) have no ledger `
+          + 'file, so no wagering volume. They rank normally on P&L, but would be missing '
+          + 'from a volume-ranked leaderboard.');
+      }
+      if (seen.ledger && !seen.periodic) {
+        warnings.push('No periodic summary supplied — P&L reflects graded wagers only, '
+          + 'and there is no bet-type breakdown.');
+      }
+    
+      const excludedTotal = [...accounts.values()]
+        .reduce((sum, a) => sum + Math.abs(a.excludedPnl || 0), 0);
+      const excludedAccounts = [...accounts.values()]
+        .filter(a => Object.keys(a.excludedBetTypes || {}).length).length;
+    
+      return { accounts, referrals, week, warnings, seen, exclude, excludedTotal, excludedAccounts };
+    }
+    
+    // Node entry point: read the files from disk, then merge.
+    function load(files, options = {}) {
+      return loadRows(files.map(file => ({ name: file, rows: readFile(file) })), options);
+    }
+    
+    module.exports = { load, loadRows, classify };
+    
+  };
+  registry["weekly"] = function (module, exports, require) {
+    'use strict';
+    // The weekly report: the bonus leaderboard and the referral commissions in one
+    // place, over the same week and the same set of exports.
+    
+    const { buildBonusReport, toPayload: bonusPayload } = require('./bonus');
+    const { buildReferralReport } = require('./referrals');
+    
+    function buildWeeklyReport(accounts, referrals, options = {}) {
+      const bonus    = buildBonusReport(accounts, options.bonus);
+      const referral = buildReferralReport(accounts, referrals, options.referral);
+    
+      // Which of the paid accounts were themselves referred — the overlap that
+      // matters when the same client both wins a bonus and earns someone a
+      // commission.
+      const paidAndReferred = bonus.eligible
+        .filter(account => account.referredBy)
+        .map(account => ({
+          account:  account.player ?? account.account,
+          bonus:    account.bonus,
+          referrer: account.referredBy,
+        }));
+    
+      return { bonus, referral, paidAndReferred };
+    }
+    
+    function toWeeklyPayload(report, week, options = {}) {
+      const { bonus, referral, paidAndReferred } = report;
+      return {
+        ...bonusPayload(bonus, week, options),
+        referrals: {
+          referrers:        referral.referrerCount,
+          referred_clients: referral.clientCount,
+          commission_rate:  referral.config.commissionRate,
+          total_commission: Number(referral.totalCommission.toFixed(2)),
+          payable: referral.groups
+            .filter(group => group.commission > 0)
+            .map(group => ({
+              referrer:   group.referrer,
+              clients:    group.clientCount,
+              net_pnl:    Number(group.pnl.toFixed(2)),
+              commission: Number(group.commission.toFixed(2)),
+            })),
+        },
+        bonus_winners_referred: paidAndReferred.map(entry => ({
+          account:  entry.account,
+          referrer: entry.referrer,
+          bonus:    Number(entry.bonus.toFixed(2)),
+        })),
+      };
+    }
+    
+    module.exports = { buildWeeklyReport, toWeeklyPayload };
+    
+  };
+  return { require };
+})();
+
+// ── Wiring ───────────────────────────────────────────────────────────────────
+const { parseCsv, toObjects, parseXlsxParts } = PEF.require('sheet');
+const { readEntryTable } = PEF.require('zip');
+const { loadRows, classify } = PEF.require('load');
+const { buildWeeklyReport, toWeeklyPayload } = PEF.require('weekly');
+
+const files = [];        // { file, name, rows, kind }
+let lastReport = null;
+let lastContext = null;
+
+const $ = id => document.getElementById(id);
+const dropZone = $('drop-zone'), fileInput = $('file-input'), runBtn = $('run-btn');
+
+const money = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const count = n => Math.round(n).toLocaleString('en-US');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+// The browser has no synchronous inflate, so .xlsx parts go through
+// DecompressionStream. Everything after this point is the shared code.
+async function inflateRaw(bytes) {
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+async function readWorkbook(buffer) {
+  const parts = {};
+  for (const entry of readEntryTable(new Uint8Array(buffer))) {
+    parts[entry.name] = entry.method === 0 ? entry.raw : await inflateRaw(entry.raw);
+  }
+  return toObjects(parseXlsxParts(parts));
+}
+
+async function readAnyFile(file) {
+  if (/\.xlsx?$/i.test(file.name)) return readWorkbook(await file.arrayBuffer());
+  return toObjects(parseCsv(await file.text()));
+}
+
+// ── File intake ──────────────────────────────────────────────────────────────
+function showMessage(text, kind) {
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + kind;
+  div.textContent = text;
+  $('messages').appendChild(div);
+}
+
+async function addFiles(incoming) {
+  $('messages').innerHTML = '';
+  for (const file of incoming) {
+    if (!/\.(xlsx|csv)$/i.test(file.name)) continue;
+    if (files.some(f => f.name === file.name)) continue;
+    try {
+      const rows = await readAnyFile(file);
+      files.push({ file, name: file.name, rows, kind: classify(rows) });
+    } catch (err) {
+      showMessage(`Could not read ${file.name}: ${err.message}`, 'error');
+    }
+  }
+  renderFiles();
+}
+
+function renderFiles() {
+  const list = $('file-list');
+  list.innerHTML = '';
+  const labels = { periodic:'Periodic', ledger:'Ledger', roster:'Roster', unknown:'Unknown', empty:'Empty' };
+  files.forEach((entry, i) => {
+    const row = document.createElement('div');
+    row.className = 'file-row';
+    row.innerHTML = `
+      <span class="badge badge-${labels[entry.kind] ? entry.kind : 'unknown'}">${labels[entry.kind] || 'Unknown'}</span>
+      <span class="file-name" title="${esc(entry.name)}">${esc(entry.name)}</span>
+      <span class="file-meta">${entry.rows.length} rows</span>
+      <button class="rm-btn" data-i="${i}">✕</button>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.rm-btn').forEach(btn => btn.onclick = () => {
+    files.splice(Number(btn.dataset.i), 1); renderFiles();
+  });
+  runBtn.disabled = files.length === 0;
+}
+
+$('browse-link').onclick = e => { e.stopPropagation(); fileInput.click(); };
+dropZone.onclick = () => fileInput.click();
+fileInput.onchange = () => { addFiles([...fileInput.files]); fileInput.value = ''; };
+['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => {
+  e.preventDefault(); dropZone.classList.add('dragover');
+}));
+['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+}));
+dropZone.addEventListener('drop', e => addFiles([...e.dataTransfer.files]));
+
+// ── Run ──────────────────────────────────────────────────────────────────────
+runBtn.onclick = () => {
+  $('messages').innerHTML = '';
+  try {
+    const merged = loadRows(files.map(f => ({ name: f.name, rows: f.rows })), {
+      includeExcluded: $('include-casino').checked,
+    });
+    for (const warning of merged.warnings) showMessage(warning, 'note');
+    if (!merged.week) throw new Error('No reporting week found — is one of these files a periodic summary or a ledger?');
+
+    const report = buildWeeklyReport(merged.accounts, merged.referrals, {
+      bonus: {
+        pool:        Number($('pool').value),
+        cap:         Number($('cap').value),
+        topPct:      Number($('topPct').value) / 100,
+        minEligible: Number($('floor').value),
+      },
+      referral: { commissionRate: Number($('rate').value) / 100 },
+    });
+
+    lastReport = report;
+    lastContext = merged;
+    render(report, merged);
+    $('results').classList.add('show');
+    $('results').scrollIntoView({ behavior:'smooth', block:'start' });
+  } catch (err) {
+    showMessage(err.message, 'error');
+  }
+};
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function render(report, merged) {
+  const bonus = report.bonus, referral = report.referral, week = merged.week;
+  const signed = n => (Math.abs(n) < 0.005 ? '—' : (n < 0 ? '−' : '+') + count(Math.abs(n)));
+
+  $('bonus-sub').textContent =
+    `${week.weekStart} → ${week.weekEnd} · ranked on ${bonus.metric.label} · `
+    + (merged.exclude.length
+        ? `excluding ${merged.exclude.join(', ')} (${money(merged.excludedTotal)})`
+        : 'all products included');
+
+  $('kpi-strip').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Week</div><div class="kpi-value" style="font-size:14px">${week.weekStart} → ${week.weekEnd}</div></div>
+    <div class="kpi"><div class="kpi-label">Accounts</div><div class="kpi-value blue">${merged.accounts.size}</div>
+      <div class="kpi-sub">${bonus.active.length} qualifying</div></div>
+    <div class="kpi"><div class="kpi-label">Paid</div><div class="kpi-value gold">${bonus.eligibleCount}</div>
+      <div class="kpi-sub">cutoff ${money(bonus.threshold)}</div></div>
+    <div class="kpi"><div class="kpi-label">Total Volume</div><div class="kpi-value purple">${money(bonus.totalWeight)}</div>
+      <div class="kpi-sub">net ${money(bonus.netPnl)}</div></div>
+    <div class="kpi"><div class="kpi-label">Bonus Paid</div><div class="kpi-value gold">${money(bonus.totalPaid)}</div>
+      ${bonus.unpaid > 0.01 ? `<div class="kpi-sub red">${money(bonus.unpaid)} unpayable</div>` : ''}</div>
+    <div class="kpi"><div class="kpi-label">Commission</div>
+      <div class="kpi-value ${referral.totalCommission > 0 ? 'green' : ''}">${money(referral.totalCommission)}</div>
+      <div class="kpi-sub">${referral.referrerCount} referrer(s)</div></div>`;
+
+  const body = $('bonus-body');
+  body.innerHTML = '';
+  bonus.eligible.forEach((a, i) => {
+    const share = bonus.eligibleWeight > 0 ? (a.metricValue / bonus.eligibleWeight) * 100 : 0;
+    const capped = a.bonus >= bonus.config.cap - 0.01;
+    const tr = document.createElement('tr');
+    tr.className = 'paid';
+    tr.innerHTML = `
+      <td class="rank">${i + 1}</td>
+      <td>${esc(a.player ?? a.account)}</td>
+      <td><span class="tag">${esc(a.agent || a.group || '—')}</span></td>
+      <td class="num">${count(a.metricValue)}</td>
+      <td class="num">${share.toFixed(2)}%</td>
+      <td class="num">${signed(a.byCategory ? a.byCategory.sports : 0)}</td>
+      <td class="num">${signed(a.byCategory ? a.byCategory.live : 0)}</td>
+      <td class="num ${a.pnl < 0 ? 'pnl-house' : a.pnl > 0 ? 'pnl-player' : ''}">${signed(a.pnl)}</td>
+      <td class="num bonus-amt ${capped ? 'capped' : ''}">${money(a.bonus)}</td>
+      <td>${a.referredBy ? esc(a.referredBy) : '<span style="color:var(--border2)">—</span>'}</td>`;
+    body.appendChild(tr);
+  });
+
+  $('ref-sub').textContent =
+    `${referral.referrerCount} referrer(s) · ${referral.clientCount} referred client(s) · `
+    + `${(referral.config.commissionRate * 100).toFixed(0)}% of net losses`;
+
+  const groups = $('referral-groups');
+  groups.innerHTML = '';
+  if (!referral.groups.length) {
+    groups.className = '';
+    groups.innerHTML = `<div class="table-wrap"><div class="empty">${
+      merged.seen.ledger
+        ? 'No referral rows found. Referrals are read from ledger credit rows whose details read “Referred &lt;CODE&gt;”.'
+        : 'No referral data — referral rows live in the transaction ledger, and no ledger file was supplied.'
+    }</div></div>`;
+    return;
+  }
+
+  for (const group of referral.groups) {
+    const card = document.createElement('div');
+    card.className = 'group-card';
+    const rows = group.clients.map((c, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td>${esc(c.account)}${c.hasActivity ? '' : ' <span class="tag">no activity</span>'}</td>
+        <td class="num">${count(c.volume)}</td>
+        <td class="num ${c.pnl < 0 ? 'pnl-house' : c.pnl > 0 ? 'pnl-player' : ''}">${signed(-c.pnl)}</td>
+        <td class="num">${c.pnl < 0 ? money(Math.abs(c.pnl) * referral.config.commissionRate) : '—'}</td>
+      </tr>`).join('');
+    card.innerHTML = `
+      <div class="group-head">
+        <span class="group-name">${esc(group.referrer)}</span>
+        <span class="tag">${group.clientCount} client(s)</span>
+        <span class="group-owed ${group.commission > 0 ? 'green' : 'muted'}">${
+          group.commission > 0 ? 'owes ' + money(group.commission) : 'no commission'}</span>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Client</th><th class="num">Volume</th>
+          <th class="num">House P&amp;L</th><th class="num">Loss share</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+      ${group.commission === 0 && group.clients.some(c => c.pnl < 0)
+        ? '<div class="empty">Losing clients are offset by winning ones — nothing payable.</div>' : ''}`;
+    groups.appendChild(card);
+  }
+}
+
+// ── Export ───────────────────────────────────────────────────────────────────
+$('copy-json').onclick = async () => {
+  if (!lastReport) return;
+  const json = JSON.stringify(toWeeklyPayload(lastReport, lastContext.week), null, 2);
+  const btn = $('copy-json');
+  try {
+    await navigator.clipboard.writeText(json);
+    btn.textContent = 'Copied ✓'; btn.classList.add('copied');
+  } catch {
+    btn.textContent = 'Copy failed';
+  }
+  setTimeout(() => { btn.textContent = 'Copy JSON'; btn.classList.remove('copied'); }, 1600);
+};
+
+$('dl-csv').onclick = () => {
+  if (!lastReport) return;
+  const bonus = lastReport.bonus;
+  const rows = [['Rank','Account','Agent','Volume','Share %','PreMatch','InPlay','Net P&L','Bonus','Referred by']];
+  bonus.eligible.forEach((a, i) => rows.push([
+    i + 1, a.player ?? a.account, a.agent || a.group || '',
+    a.metricValue.toFixed(2),
+    (bonus.eligibleWeight > 0 ? (a.metricValue / bonus.eligibleWeight) * 100 : 0).toFixed(2),
+    (a.byCategory ? a.byCategory.sports : 0).toFixed(2),
+    (a.byCategory ? a.byCategory.live : 0).toFixed(2),
+    a.pnl.toFixed(2), a.bonus.toFixed(2), a.referredBy || '',
+  ]));
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const week = lastContext.week;
+  const link = document.createElement('a');
+  link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  link.download = `weekly-bonus_${week.weekStart}_${week.weekEnd}.csv`;
+  document.body.appendChild(link); link.click(); link.remove();
+};
+</script>
+</body>
+</html>
