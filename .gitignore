@@ -5,3 +5,6 @@ node_modules/
 exports/
 *.xlsx
 !test/fixtures/*.xlsx
+
+# Player rosters carry names, emails and dates of birth — never commit one.
+*roster*.csv

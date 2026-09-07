@@ -89,3 +89,30 @@ test('includeExcluded restores the casino figures', () => {
   assert.deepStrictEqual(result.exclude, []);
   assert.strictEqual(result.accounts.get('BB200').pnl, 100);
 });
+
+test('the player roster is told apart from the transaction ledger', () => {
+  // Both have a Player column; only the ledger describes transactions.
+  const roster = [{ Agent: 'A', 'Player Id': '1', Player: 'P1', Email: 'a@b.c',
+                    'Creation Time': '07/27/26 18:33:04', 'Current Balance': '0' }];
+  assert.strictEqual(classify(roster), 'roster');
+  assert.strictEqual(classify([{ Player: 'P1', Type: 'Wager Placed', Debit: '-10' }]), 'ledger');
+});
+
+test('a roster is skipped with an explanation instead of crashing', () => {
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const file = path.join(os.tmpdir(), `roster-${process.pid}.csv`);
+  fs.writeFileSync(file,
+    '"Agent","Player Id","Player","Email","Creation Time","Current Balance"\n'
+    + '"AGENTA","1","AA100","a@b.c","07/27/26 18:33:04","0"\n');
+  try {
+    const result = load([PERIODIC, file]);
+    assert.strictEqual(result.seen.roster, 1);
+    assert.strictEqual(result.seen.periodic, 1);
+    assert.ok(result.warnings.some(w => /player roster/.test(w)));
+    // The periodic file still loaded normally alongside it.
+    assert.ok(result.accounts.get('AA100').sources.includes('periodic'));
+  } finally {
+    fs.unlinkSync(file);
+  }
+});

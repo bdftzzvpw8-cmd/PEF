@@ -4,7 +4,7 @@ Weekly **bonus leaderboard** and **referral commission** reports, rebuilt to rea
 the new platform's transaction-ledger export.
 
 ```
-npm test                                       # 84 tests, no dependencies
+npm test                                       # 86 tests, no dependencies
 node bin/report.js weekly    <exports...>      # leaderboard + referrals
 node bin/report.js bonus     <exports...>      # leaderboard only
 node bin/report.js referrals <exports...>      # referral commissions only
@@ -108,6 +108,17 @@ every new file:
 
    *Confirmed against live data: account GD070's ledger closes at 0.84, matching
    the leaf value 0.846, not the 2.538 on its account row.*
+
+### The player roster
+
+A third export exists — the account roster, one row per player with agent,
+balances, contact details and creation time. It has a `Player` column but no
+transactions, so it is recognised and skipped with an explanation rather than
+being parsed as activity. Nothing in it feeds either report.
+
+**It contains personal data** — names, email addresses and dates of birth for
+every player on the book. Keep it out of the repository and out of anywhere it
+does not need to be.
 
 ### Combining them
 
