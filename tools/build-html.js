@@ -14,7 +14,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 // Order matters only for readability; the registry resolves lazily.
-const MODULES = ['zip', 'sheet', 'ledger', 'periodic', 'wagers', 'bonus', 'referrals', 'load', 'weekly'];
+const MODULES = ['zip', 'sheet', 'ledger', 'periodic', 'wagers', 'roster', 'bonus', 'referrals', 'load', 'weekly'];
 
 // Node built-ins the browser must never reach. If a code path tries, it should
 // say so loudly rather than fail somewhere confusing.

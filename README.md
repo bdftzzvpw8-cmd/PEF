@@ -5,7 +5,7 @@ the new platform's transaction-ledger export.
 
 ```
 npm run build                                  # -> dist/weekly-report.html
-npm test                                       # 98 tests, no dependencies
+npm test                                       # 109 tests, no dependencies
 node bin/report.js weekly    <exports...>      # leaderboard + referrals
 node bin/report.js bonus     <exports...>      # leaderboard only
 node bin/report.js referrals <exports...>      # referral commissions only
@@ -154,10 +154,27 @@ different weeks is reported rather than quietly averaged.
 
 ### The player roster
 
-A third export exists — the account roster, one row per player with agent,
-balances, contact details and creation time. It has a `Player` column but no
-transactions, so it is recognised and skipped with an explanation rather than
-being parsed as activity. Nothing in it feeds either report.
+The account roster, one row per player with agent, balances, contact details and
+creation time. It has a `Player` column but no transactions, so it is never
+parsed as activity.
+
+**With a notes column it is a referral source** — which is where the previous
+reports read relationships from. Two directions are recognised, each matched
+explicitly:
+
+| Note on account `GD070` | Meaning |
+| --- | --- |
+| `Referred BTCB50` | GD070 brought BTCB50 in |
+| `Referred by BTCB50` | BTCB50 brought GD070 in |
+
+One note can name several clients. A note holding only a bare code is ambiguous —
+it is reported as unparsed rather than guessed at, because guessing inverts who
+gets paid. Single-character codes are ignored: real accounts never have them, and
+matching them would turn stray words into payouts.
+
+The exports supplied so far **do not include a notes column** — all 26 are
+account fields — so the column has to be added to the export before referrals
+can be read from it. Without it the roster is skipped with that explanation.
 
 **It contains personal data** — names, email addresses and dates of birth for
 every player on the book. Keep it out of the repository and out of anywhere it

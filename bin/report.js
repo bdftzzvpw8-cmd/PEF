@@ -7,10 +7,14 @@
 //   node bin/report.js referrals <exports...>   referral commissions only
 //   node bin/report.js verify    <exports...>   structural checks only
 //
-// Pass any mix of the two exports the platform emits. The periodic summary
-// carries the whole book's P&L by bet type; the transaction ledger carries
-// wagering volume and the referral rows — referrals cannot be reported without
-// at least one ledger file.
+// Pass any mix of the exports the platform emits:
+//
+//   periodic summary   the whole book's P&L, broken down by bet type
+//   wagers             one row per bet; the only real wagering volume
+//   transaction ledger per-player events, including referral credit rows
+//   player roster      account details; referrals too, if it has a notes column
+//
+// Referrals need either a ledger or a roster exported with its notes column.
 //
 // Options: --basis=total_pnl|abs_pnl|wagered  --pool  --cap  --topPct  --floor
 //          --rate   --include-casino   --json   --csv
@@ -134,11 +138,11 @@ function renderReferrals(report, { week, exclusionLine, seen }) {
   console.log(`${exclusionLine}\n`);
 
   if (!report.groups.length) {
-    console.log(seen.ledger
-      ? 'No referral rows found. Referrals are read from credit rows whose details '
-        + 'read "Referred <CODE>".'
-      : 'No referral data — referral rows live in the transaction ledger, and no '
-        + 'ledger file was supplied.');
+    console.log(seen.ledger || seen.roster
+      ? 'No referral relationships found. They are read from ledger credit rows whose '
+        + 'details read "Referred <CODE>", or from a notes column on the player roster.'
+      : 'No referral data — supply a transaction ledger, or a player roster whose export '
+        + 'includes the notes column.');
     console.log('');
     return;
   }
