@@ -843,6 +843,117 @@ const PEF = (function () {
     module.exports = { BET_TYPES, CATEGORIES, EXCLUDED_BET_TYPES, categoryOf, isExcluded, parsePeriodic, verifyPeriodic, parseWeekHeader, findWeekColumn };
     
   };
+  registry["wagers"] = function (module, exports, require) {
+    'use strict';
+    // Reads the wagers export — one row per bet, with the stake in `Risk` and the
+    // settled outcome in `Result`.
+    //
+    // This is the only export that carries real wagering volume. The periodic
+    // summary reports P&L alone, so a client who churns a large stake to a near-zero
+    // net is invisible there; here they are exactly what they are.
+    
+    const { num, parseDate, fmtDate, findColumn } = require('./ledger');
+    
+    // Casino bets are named directly in the details rather than inferred from a
+    // provider name. Only the table-games prefix appears in the data so far, so
+    // anything unrecognised is treated as sportsbook and reported, rather than
+    // being quietly swept into casino.
+    const CASINO_DETAIL_PATTERNS = [/^\s*Table\s*\//i, /^\s*Slots?\s*\//i];
+    
+    // A cancelled bet never stood, so it is not volume.
+    const VOID_STATUSES = new Set(['cancel', 'cancelled', 'canceled', 'void', 'voided']);
+    
+    const COLUMNS = {
+      player:  ['player', 'customer', 'account'],
+      agent:   ['agent'],
+      status:  ['status'],
+      placed:  ['place time', 'placed', 'date'],
+      details: ['details', 'detail', 'description'],
+      risk:    ['risk', 'stake', 'wagered'],
+      toWin:   ['to win', 'towin', 'win amount'],
+      result:  ['result', 'win/loss', 'outcome'],
+      id:      ['wager #', 'wager', 'ticket', 'id'],
+    };
+    
+    function isCasino(details) {
+      return CASINO_DETAIL_PATTERNS.some(pattern => pattern.test(String(details ?? '')));
+    }
+    
+    function isVoid(status) {
+      return VOID_STATUSES.has(String(status ?? '').trim().toLowerCase());
+    }
+    
+    // `Place Time` is "MM/DD/YY HH:MM:SS"; only the date part matters here.
+    function placedDate(value) {
+      const text = String(value ?? '').trim();
+      return parseDate(text.split(/[\sT]/)[0]) ;
+    }
+    
+    function parseWagers(rows, options = {}) {
+      const excludeCasino = options.excludeCasino !== false;
+      if (!rows.length) return { players: new Map(), week: null, bets: 0 };
+    
+      const cols = {};
+      for (const [key, names] of Object.entries(COLUMNS)) cols[key] = findColumn(rows[0], names);
+      if (!cols.player) throw new Error('No player column found in the wagers export');
+      if (!cols.risk)   throw new Error('No risk/stake column found in the wagers export');
+    
+      const players = new Map();
+      const dates = [];
+      let counted = 0, voided = 0, casinoBets = 0;
+    
+      for (const row of rows) {
+        const name = String(row[cols.player] ?? '').trim();
+        if (!name) continue;
+    
+        const key = name.toUpperCase();
+        let rec = players.get(key);
+        if (!rec) {
+          rec = {
+            player: name, key,
+            agent: cols.agent ? String(row[cols.agent] ?? '').trim() || null : null,
+            volume: 0, wagersPnl: 0, bets: 0,
+            casinoVolume: 0, casinoPnl: 0, casinoBets: 0,
+            voidedBets: 0,
+          };
+          players.set(key, rec);
+        }
+    
+        const date = cols.placed ? placedDate(row[cols.placed]) : null;
+        if (date) dates.push(date);
+    
+        if (isVoid(cols.status ? row[cols.status] : '')) { rec.voidedBets++; voided++; continue; }
+    
+        const risk   = Math.abs(num(row[cols.risk]));
+        const result = cols.result ? num(row[cols.result]) : 0;
+    
+        if (excludeCasino && isCasino(cols.details ? row[cols.details] : '')) {
+          rec.casinoVolume += risk;
+          rec.casinoPnl    += result;
+          rec.casinoBets   += 1;
+          casinoBets++;
+          continue;
+        }
+        if (isCasino(cols.details ? row[cols.details] : '')) { casinoBets++; rec.casinoBets += 1; }
+    
+        rec.volume    += risk;
+        rec.wagersPnl += result;
+        rec.bets      += 1;
+        counted++;
+      }
+    
+      const week = dates.length ? (() => {
+        const end   = new Date(Math.max(...dates.map(d => d.getTime())));
+        const start = new Date(Math.min(...dates.map(d => d.getTime())));
+        return { start, end, weekStart: fmtDate(start), weekEnd: fmtDate(end) };
+      })() : null;
+    
+      return { players, week, bets: rows.length, counted, voided, casinoBets };
+    }
+    
+    module.exports = { CASINO_DETAIL_PATTERNS, VOID_STATUSES, isCasino, isVoid, parseWagers };
+    
+  };
   registry["bonus"] = function (module, exports, require) {
     'use strict';
     // Weekly bonus leaderboard: splits a fixed prize pool across the top slice of
@@ -862,7 +973,9 @@ const PEF = (function () {
     const METRICS = {
       total_pnl: {
         key:   'total_pnl',
-        label: 'Volume',
+        // Qualified, because real wagered volume now sits alongside it and the two
+        // are very different numbers.
+        label: 'Volume (W+L)',
         of:    account => {
           const perType = account.betTypes && Object.keys(account.betTypes).length
             ? Object.values(account.betTypes)
@@ -1126,6 +1239,7 @@ const PEF = (function () {
     const { readFile }        = require('./sheet');
     const { loadLedger }      = require('./ledger');
     const { parsePeriodic, verifyPeriodic, CATEGORIES, EXCLUDED_BET_TYPES } = require('./periodic');
+    const { parseWagers } = require('./wagers');
     
     function classify(rows) {
       if (!rows.length) return 'empty';
@@ -1133,6 +1247,8 @@ const PEF = (function () {
       const has = name => keys.includes(name);
     
       if (has('group')) return 'periodic';
+      // The wagers export is one row per bet, so it carries a stake.
+      if ((has('player') || has('customer')) && has('risk')) return 'wagers';
       // A transaction ledger is one row per event, so it must say what each event
       // was. The player roster also has a Player column but no transactions —
       // distinguishing them stops a roster being parsed as activity.
@@ -1150,7 +1266,11 @@ const PEF = (function () {
         player: name, key, account: name,
         group: null, agent: null,
         volume: 0, staked: 0, returned: 0, bets: 0,
+        casinoVolume: 0, casinoBets: 0,
         pnl: 0,
+        // Kept apart from `pnl` so the sources can be compared rather than merged
+        // into one unattributable number.
+        wagersPnl: null,
         byCategory: Object.fromEntries(CATEGORIES.map(c => [c, 0])),
         betTypes: {},
         excludedBetTypes: {},
@@ -1177,7 +1297,7 @@ const PEF = (function () {
       const accounts  = new Map();
       const referrals = [];
       const warnings  = [];
-      const seen      = { ledger: 0, periodic: 0, roster: 0 };
+      const seen      = { ledger: 0, periodic: 0, wagers: 0, roster: 0 };
       let week = null;
     
       const get = (name, key) => {
@@ -1234,6 +1354,31 @@ const PEF = (function () {
           continue;
         }
     
+        if (kind === 'wagers') {
+          seen.wagers++;
+          const parsed = parseWagers(rows, { excludeCasino: exclude.length > 0 });
+          if (parsed.week) {
+            if (!week) week = parsed.week;
+            else if (week.weekEnd !== parsed.week.weekEnd) {
+              warnings.push(`${file}: covers ${parsed.week.weekStart}–${parsed.week.weekEnd}, but another `
+                + `file covers ${week.weekStart}–${week.weekEnd}. Mixing weeks gives a meaningless report.`);
+            }
+          }
+          for (const rec of parsed.players.values()) {
+            const target = get(rec.player, rec.key);
+            target.agent        = target.agent || rec.agent;
+            target.volume      += rec.volume;
+            target.bets        += rec.bets;
+            target.casinoVolume += rec.casinoVolume;
+            target.casinoBets  += rec.casinoBets;
+            target.wagersPnl    = (target.wagersPnl ?? 0) + rec.wagersPnl;
+            // Only stand in for the periodic figure when there is not one.
+            if (target.periodicPnl === null) target.pnl = target.wagersPnl;
+            if (!target.sources.includes('wagers')) target.sources.push('wagers');
+          }
+          continue;
+        }
+    
         if (kind === 'roster') {
           seen.roster++;
           warnings.push(`${file}: this is the player roster (account details), not activity. `
@@ -1259,24 +1404,30 @@ const PEF = (function () {
       // Volume only exists in the ledger. That matters when the leaderboard is
       // ranked on volume; ranking on P&L needs only the periodic summary. The
       // caller picks the basis, so state the gap rather than predict the effect.
-      const withoutVolume = [...accounts.values()]
-        .filter(a => a.sources.includes('periodic') && !a.sources.includes('ledger'));
-      if (withoutVolume.length) {
-        warnings.push(`${withoutVolume.length} of ${accounts.size} account(s) have no ledger `
-          + 'file, so no wagering volume. They rank normally on P&L, but would be missing '
-          + 'from a volume-ranked leaderboard.');
+      const withoutVolume = [...accounts.values()].filter(a => a.volume <= 0);
+      if (withoutVolume.length && withoutVolume.length < accounts.size) {
+        warnings.push(`${withoutVolume.length} of ${accounts.size} account(s) have no wagering `
+          + 'volume, so they cannot appear on a volume-ranked leaderboard.');
+      } else if (!seen.wagers && !seen.ledger) {
+        warnings.push('No wagers or ledger file supplied, so there is no wagering volume — '
+          + 'only the P&L-based ranking is available.');
       }
-      if (seen.ledger && !seen.periodic) {
-        warnings.push('No periodic summary supplied — P&L reflects graded wagers only, '
-          + 'and there is no bet-type breakdown.');
+      if ((seen.ledger || seen.wagers) && !seen.periodic) {
+        warnings.push('No periodic summary supplied, so there is no PreMatch/InPlay breakdown '
+          + 'and P&L comes from the bet-level data alone.');
       }
     
+      // Casino is excluded from two different sources: the periodic summary names
+      // it by provider, the wagers file by the bet's own details. Report both.
       const excludedTotal = [...accounts.values()]
         .reduce((sum, a) => sum + Math.abs(a.excludedPnl || 0), 0);
+      const excludedWagered = [...accounts.values()]
+        .reduce((sum, a) => sum + (a.casinoVolume || 0), 0);
       const excludedAccounts = [...accounts.values()]
-        .filter(a => Object.keys(a.excludedBetTypes || {}).length).length;
+        .filter(a => Object.keys(a.excludedBetTypes || {}).length || a.casinoBets > 0).length;
     
-      return { accounts, referrals, week, warnings, seen, exclude, excludedTotal, excludedAccounts };
+      return { accounts, referrals, week, warnings, seen, exclude,
+        excludedTotal, excludedWagered, excludedAccounts };
     }
     
     // Node entry point: read the files from disk, then merge.
@@ -1292,12 +1443,46 @@ const PEF = (function () {
     // The weekly report: the bonus leaderboard and the referral commissions in one
     // place, over the same week and the same set of exports.
     
-    const { buildBonusReport, toPayload: bonusPayload } = require('./bonus');
+    const { buildBonusReport, toPayload: bonusPayload, METRICS } = require('./bonus');
     const { buildReferralReport } = require('./referrals');
+    
+    // While the ranking basis is still being decided, the report shows the paying
+    // board alongside the alternative so the two can be compared on real weeks
+    // before either is committed to.
+    function compareBases(accounts, primary, options) {
+      const alternative = primary === 'wagered' ? 'total_pnl' : 'wagered';
+      let other;
+      try {
+        other = buildBonusReport(accounts, { ...options, basis: alternative });
+      } catch {
+        return null;   // nothing to rank on for that basis — e.g. no volume supplied
+      }
+      return {
+        basis:  alternative,
+        label:  METRICS[alternative].label,
+        report: other,
+        rows:   other.eligible.map((account, i) => ({
+          rank:    i + 1,
+          account: account.player ?? account.account,
+          value:   account.metricValue,
+          bonus:   account.bonus,
+        })),
+      };
+    }
     
     function buildWeeklyReport(accounts, referrals, options = {}) {
       const bonus    = buildBonusReport(accounts, options.bonus);
       const referral = buildReferralReport(accounts, referrals, options.referral);
+    
+      const comparison = compareBases(accounts, bonus.metric.key, options.bonus ?? {});
+      // Re-rank on the paying basis: building the alternative stamped every account
+      // with its metric value, and the render reads that field.
+      if (comparison) buildBonusReport(accounts, options.bonus);
+    
+      const paidBy = new Set(bonus.eligible.map(a => a.player ?? a.account));
+      const alsoPaid = comparison
+        ? comparison.rows.filter(row => paidBy.has(row.account)).map(row => row.account)
+        : [];
     
       // Which of the paid accounts were themselves referred — the overlap that
       // matters when the same client both wins a bonus and earns someone a
@@ -1310,7 +1495,18 @@ const PEF = (function () {
           referrer: account.referredBy,
         }));
     
-      return { bonus, referral, paidAndReferred };
+      return {
+        bonus, referral, paidAndReferred,
+        comparison: comparison && {
+          ...comparison,
+          // Who would be paid under either basis, and who only under one.
+          inBoth:      alsoPaid,
+          onlyOnOther: comparison.rows.filter(r => !paidBy.has(r.account)).map(r => r.account),
+          onlyOnPaying: bonus.eligible
+            .map(a => a.player ?? a.account)
+            .filter(name => !comparison.rows.some(r => r.account === name)),
+        },
+      };
     }
     
     function toWeeklyPayload(report, week, options = {}) {
@@ -1330,6 +1526,15 @@ const PEF = (function () {
               net_pnl:    Number(group.pnl.toFixed(2)),
               commission: Number(group.commission.toFixed(2)),
             })),
+        },
+        comparison: report.comparison && {
+          basis: report.comparison.basis,
+          ranking: report.comparison.rows.map(row => ({
+            rank: row.rank, account: row.account, value: Number(row.value.toFixed(2)),
+          })),
+          in_both:        report.comparison.inBoth,
+          only_on_other:  report.comparison.onlyOnOther,
+          only_on_paying: report.comparison.onlyOnPaying,
         },
         bonus_winners_referred: paidAndReferred.map(entry => ({
           account:  entry.account,

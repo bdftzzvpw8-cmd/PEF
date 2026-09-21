@@ -5,7 +5,7 @@ the new platform's transaction-ledger export.
 
 ```
 npm run build                                  # -> dist/weekly-report.html
-npm test                                       # 88 tests, no dependencies
+npm test                                       # 98 tests, no dependencies
 node bin/report.js weekly    <exports...>      # leaderboard + referrals
 node bin/report.js bonus     <exports...>      # leaderboard only
 node bin/report.js referrals <exports...>      # referral commissions only
@@ -132,6 +132,26 @@ every new file:
    *Confirmed against live data: account GD070's ledger closes at 0.84, matching
    the leaf value 0.846, not the 2.538 on its account row.*
 
+### Wagers
+
+One row per bet: `Status, Place Time, Agent, Player, Wager #, Details, Risk,
+To Win, Result`. **`Risk` is the only real wagering volume in any export** — the
+periodic summary reports outcomes, so a client who churns a large stake to a
+near-zero net is invisible there and obvious here.
+
+`Result` is the settled outcome per bet, player-perspective, matching the
+convention used throughout. Cancelled and voided bets are not volume; pushes are
+(the stake stood, it simply came back).
+
+Casino is named in the bet's own details (`Table / American Blackjack`) rather
+than inferred from a provider, so `lib/wagers.js` excludes it directly. A slash
+alone does not mean casino — a tennis match reads `Player A / Player B` — so
+matching is against `CASINO_DETAIL_PATTERNS`, and anything unrecognised stays
+sportsbook rather than being swept into casino silently.
+
+The week is taken from the first and last bet placed. Supplying files covering
+different weeks is reported rather than quietly averaged.
+
 ### The player roster
 
 A third export exists — the account roster, one row per player with agent,
@@ -153,8 +173,15 @@ figures are kept (`periodicPnl`, `ledgerPnl`) so the gap stays visible.
 
 ## Bonus leaderboard
 
-Ranked on **volume** — each client's wins and losses totalled across their bet
-types. The client with the most is #1. The periodic summary alone is enough.
+Ranked on **Volume (W+L)** — each client's wins and losses totalled across their
+bet types. The client with the most is #1. The periodic summary alone is enough.
+
+> **This is not the same as wagered volume**, and the difference is large. On a
+> live week one account staked **$72,912** while netting **$4,412**; under the
+> P&L basis it ranks on the latter. Ranking on real stake (`--basis=wagered`,
+> which needs a wagers export) changes half the top ten. While the basis is
+> being decided, `weekly` prints both boards side by side and names who would be
+> paid under each.
 
 A client who won $500 on PreMatch and lost $400 InPlay counts for **$900**, not
 $100: the two are added, never netted against each other. That measures how much
@@ -191,11 +218,11 @@ an account whose net P&L is $28 — near enough invisible — but which ran $237
 against $209 across two products, so it carries $446 of action and makes the top
 ten.
 
-Two other bases exist for comparison. `--basis=abs_pnl` nets each client's bet
-types before taking the magnitude — on live data that shrinks the book total from
-$14,135.59 to $10,656.59 and changes who holds the top ten. `--basis=wagered` is
-the original ranking on amount staked, which needs ledger files. Other defaults
-are overridable too: `--pool=3000 --cap=500 --topPct=20 --floor=10`.
+Two other bases exist. `--basis=wagered` ranks on the amount actually staked and
+needs a wagers export. `--basis=abs_pnl` nets each client's bet types before
+taking the magnitude — on live data that shrinks the book total from $14,135.59
+to $10,656.59 and changes who holds the top ten. Other defaults are overridable
+too: `--pool=3000 --cap=500 --topPct=20 --floor=10`.
 
 > **Cap can ceiling the pool.** An eligible set of *n* accounts can absorb at
 > most `n × cap`. With the floor of 10 and a $500 cap that ceiling is $5,000, so
@@ -246,6 +273,7 @@ lib/zip.js        minimal zip reader (an .xlsx is a zip of XML)
 lib/sheet.js      .csv and .xlsx into row objects
 lib/ledger.js     transaction ledger: players, volume, referral edges
 lib/periodic.js   periodic summary: bet-type P&L, plus its three quirks
+lib/wagers.js     wagers export: stake, settled result, casino by bet detail
 lib/load.js       merge whatever exports are supplied into one week
 lib/bonus.js      leaderboard: eligibility, weighting, cap redistribution
 lib/referrals.js  referral grouping and commission

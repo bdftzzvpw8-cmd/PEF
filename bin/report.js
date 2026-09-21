@@ -97,6 +97,36 @@ function renderBonus(report, { accounts, week, exclusionLine, showReferrer }) {
   console.log('');
 }
 
+// The ranking basis is not settled, so the alternative is shown next to the
+// paying board rather than left to be reconstructed by hand.
+function renderComparison(report, { week }) {
+  const paying = report.bonus;
+  const other  = report.comparison;
+
+  console.log(`If ranked on ${other.label} instead of ${paying.metric.label}:\n`);
+  console.log(['  #', 'Paying now'.padEnd(14), paying.metric.label.padStart(11),
+    '   ', 'Would be paid'.padEnd(14), other.label.padStart(11)].join(' '));
+
+  const rows = Math.max(paying.eligible.length, other.rows.length);
+  for (let i = 0; i < rows; i++) {
+    const a = paying.eligible[i];
+    const b = other.rows[i];
+    console.log([
+      String(i + 1).padStart(3),
+      (a ? (a.player ?? a.account) : '').padEnd(14),
+      (a ? count(a.metricValue) : '').padStart(11),
+      '   ',
+      (b ? b.account : '').padEnd(14),
+      (b ? count(b.value) : '').padStart(11),
+    ].join(' '));
+  }
+
+  console.log(`\n  paid either way : ${other.inBoth.join(' ') || '—'}`);
+  console.log(`  only as it is   : ${other.onlyOnPaying.join(' ') || '—'}`);
+  console.log(`  only if switched: ${other.onlyOnOther.join(' ') || '—'}`);
+  console.log('');
+}
+
 function renderReferrals(report, { week, exclusionLine, seen }) {
   console.log(`\nWeekly Referrals   ${week.weekStart} → ${week.weekEnd}`);
   console.log(`${report.referrerCount} referrers · ${report.clientCount} referred clients `
@@ -146,14 +176,20 @@ function main() {
     process.exit(1);
   }
 
-  const { accounts, referrals, week, warnings, seen, exclude, excludedTotal, excludedAccounts } =
+  const { accounts, referrals, week, warnings, seen, exclude,
+    excludedTotal, excludedWagered, excludedAccounts } =
     load(files, { includeExcluded: Boolean(flags['include-casino']) });
   for (const warning of warnings) console.error(`NOTE  ${warning}`);
 
-  const exclusionLine = exclude.length
-    ? `Excluding ${exclude.join(', ')} — ${money(excludedTotal)} across `
-      + `${excludedAccounts} account(s) left out`
-    : 'Including every product (casino not excluded)';
+  const removed = [
+    excludedTotal   > 0.005 ? `${money(excludedTotal)} P&L` : null,
+    excludedWagered > 0.005 ? `${money(excludedWagered)} wagered` : null,
+  ].filter(Boolean).join(' and ');
+  const exclusionLine = !exclude.length
+    ? 'Including every product (casino not excluded)'
+    : removed
+      ? `Casino excluded — ${removed} across ${excludedAccounts} account(s) left out`
+      : 'Casino excluded — none found in these files';
   const context = { accounts, week, exclusionLine, seen };
 
   if (command === 'verify') {
@@ -176,6 +212,7 @@ function main() {
       return;
     }
     renderBonus(report.bonus, { ...context, showReferrer: referrals.length > 0 });
+    if (report.comparison) renderComparison(report, context);
     renderReferrals(report.referral, context);
 
     if (report.paidAndReferred.length) {
