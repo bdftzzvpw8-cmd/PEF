@@ -34,9 +34,14 @@ test('the page produces the same report as the CLI', skipOpts, async () => {
   const { loadRows }          = require('../lib/load');
   const { readFile }          = require('../lib/sheet');
   const { buildWeeklyReport } = require('../lib/weekly');
+  const { parseReferralMap }  = require('../lib/referral-map');
 
-  // What the CLI computes, from the same two fixtures.
-  const merged = loadRows([PERIODIC, LEDGER].map(f => ({ name: f, rows: readFile(f) })));
+  // The page ships with the maintained referral list baked in, so the CLI side
+  // of the comparison has to start from the same relationships.
+  const seeded = parseReferralMap(
+    readFile(path.join(ROOT, 'data', 'referrals.csv'))).edges;
+  const merged = loadRows([PERIODIC, LEDGER].map(f => ({ name: f, rows: readFile(f) })),
+    { referrals: seeded });
   const expected = buildWeeklyReport(merged.accounts, merged.referrals);
 
   const browser = await playwright.chromium.launch();

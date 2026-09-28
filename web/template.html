@@ -203,11 +203,27 @@
 <script>
 /* __PEF_BUNDLE__ */
 
+/* __PEF_REFERRALS__ */
+
 // ── Wiring ───────────────────────────────────────────────────────────────────
 const { parseCsv, toObjects, parseXlsxParts } = PEF.require('sheet');
 const { readEntryTable } = PEF.require('zip');
 const { loadRows, classify } = PEF.require('load');
+const { parseReferralMap } = PEF.require('referral-map');
 const { buildWeeklyReport, toWeeklyPayload } = PEF.require('weekly');
+
+// Relationships shipped with the page, so it knows what the CLI knows. Dropping
+// a referral list in adds to these rather than replacing them.
+const SEEDED_REFERRALS = (() => {
+  if (!REFERRAL_LIST_CSV || !REFERRAL_LIST_CSV.trim()) return [];
+  try {
+    const { dropComments, parseCsv, toObjects } = PEF.require('sheet');
+    return parseReferralMap(toObjects(dropComments(parseCsv(REFERRAL_LIST_CSV)))).edges;
+  } catch (err) {
+    console.warn('Could not read the built-in referral list:', err.message);
+    return [];
+  }
+})();
 
 const files = [];        // { file, name, rows, kind }
 let lastReport = null;
@@ -300,6 +316,7 @@ runBtn.onclick = () => {
   try {
     const merged = loadRows(files.map(f => ({ name: f.name, rows: f.rows })), {
       includeExcluded: $('include-casino').checked,
+      referrals: SEEDED_REFERRALS,
     });
     for (const warning of merged.warnings) showMessage(warning, 'note');
     if (!merged.week) throw new Error('No reporting week found — is one of these files a periodic summary or a ledger?');

@@ -5,7 +5,7 @@ the new platform's transaction-ledger export.
 
 ```
 npm run build                                  # -> dist/weekly-report.html
-npm test                                       # 109 tests, no dependencies
+npm test                                       # 120 tests, no dependencies
 node bin/report.js weekly    <exports...>      # leaderboard + referrals
 node bin/report.js bonus     <exports...>      # leaderboard only
 node bin/report.js referrals <exports...>      # referral commissions only
@@ -256,6 +256,39 @@ stores: `generated_at`, `week_start`, `week_end`, `volume_threshold`,
 > metric ranked the board. A new `threshold_basis` field (`abs_pnl` or `volume`)
 > says which — anything displaying that number as "cutoff volume" needs its
 > label updated.
+
+## Where referrals come from
+
+Three sources, all producing the same kind of relationship, all merged:
+
+| Source | How |
+| --- | --- |
+| Transaction ledger | credit rows whose details read `Referred <CODE>` |
+| Player roster | a notes column, if the export includes one |
+| `data/referrals.csv` | the maintained list, read automatically |
+
+The platform's exports do not currently carry relationships — the roster has no
+notes column and the whole-book ledger is not available — so **`data/referrals.csv`
+is the working source of truth.** It is read on every run without being passed,
+travels with the built HTML page, and is version-controlled, so a change to who
+referred whom is a reviewable diff rather than a remembered fact.
+
+```csv
+referrer,referred,since,note
+GD070,BTCB50,2026-09-03,"from GD070's ledger"
+```
+
+`referrer` earns the commission; `referred` is the client they brought in. A
+referrer may appear on as many rows as they have clients. Codes match
+case-insensitively, `#` comments are ignored, and `since`/`note` are optional.
+
+The list is checked as it is read. A half-filled row, a self-referral and an
+exact duplicate are each reported with their line number rather than silently
+applied — and **one client listed under two referrers is flagged as a double
+payment**, with both edges kept so the conflict is visible rather than resolved
+by whichever happened to be read first.
+
+`--no-referral-list` runs without it.
 
 ## Referral commissions
 

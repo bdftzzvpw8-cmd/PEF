@@ -14,7 +14,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 // Order matters only for readability; the registry resolves lazily.
-const MODULES = ['zip', 'sheet', 'ledger', 'periodic', 'wagers', 'roster', 'bonus', 'referrals', 'load', 'weekly'];
+const MODULES = ['zip', 'sheet', 'ledger', 'periodic', 'wagers', 'roster', 'referral-map', 'bonus', 'referrals', 'load', 'weekly'];
 
 // Node built-ins the browser must never reach. If a code path tries, it should
 // say so loudly rather than fail somewhere confusing.
@@ -55,21 +55,34 @@ function bundle() {
   return parts.join('\n');
 }
 
+// The maintained referral list travels with the page, so the browser tool knows
+// the same relationships the CLI does without anyone remembering to attach it.
+function referralList() {
+  const file = path.join(ROOT, 'data', 'referrals.csv');
+  const text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+  return `const REFERRAL_LIST_CSV = ${JSON.stringify(text)};`;
+}
+
 function main() {
   const template = fs.readFileSync(path.join(ROOT, 'web', 'template.html'), 'utf8');
-  const marker = '/* __PEF_BUNDLE__ */';
-  if (!template.includes(marker)) {
-    throw new Error(`web/template.html is missing the ${marker} placeholder`);
+  for (const marker of ['/* __PEF_BUNDLE__ */', '/* __PEF_REFERRALS__ */']) {
+    if (!template.includes(marker)) {
+      throw new Error(`web/template.html is missing the ${marker} placeholder`);
+    }
   }
 
-  const html = template.replace(marker, () => bundle());
+  const html = template
+    .replace('/* __PEF_BUNDLE__ */', () => bundle())
+    .replace('/* __PEF_REFERRALS__ */', () => referralList());
   const outDir = path.join(ROOT, 'dist');
   fs.mkdirSync(outDir, { recursive: true });
   const outFile = path.join(outDir, 'weekly-report.html');
   fs.writeFileSync(outFile, html);
 
   const kb = (Buffer.byteLength(html) / 1024).toFixed(1);
-  console.log(`Built ${path.relative(ROOT, outFile)} (${kb} KB, ${MODULES.length} modules)`);
+  const listed = (html.match(/const REFERRAL_LIST_CSV = "(.*)"/) || ['', '']).length;
+  console.log(`Built ${path.relative(ROOT, outFile)} (${kb} KB, ${MODULES.length} modules, `
+    + `referral list ${listed ? 'embedded' : 'absent'})`);
 }
 
 main();

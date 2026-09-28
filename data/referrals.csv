@@ -1,0 +1,17 @@
+# Referral relationships — who brought whom in.
+#
+# The platform's exports do not currently carry this: the roster has no notes
+# column and the whole-book ledger is not available. Until one of those arrives,
+# this file is the source of truth, and the weekly report reads it automatically.
+#
+# One row per relationship. A referrer may appear on as many rows as they have
+# clients. Account codes are matched case-insensitively.
+#
+#   referrer  the account that brought the client in — earns the commission
+#   referred  the client they brought in
+#   since     when the relationship started (optional, informational)
+#   note      where this came from, so it can be checked later (optional)
+#
+referrer,referred,since,note
+GD070,BTCB50,2026-09-03,"Promotional Credit $50 on GD070's ledger: Referred BTCB50"
+GD070,BTCB51,2026-09-04,"Credit Adjustment $26 on GD070's ledger: Referred BTCB51"

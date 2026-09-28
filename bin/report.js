@@ -17,9 +17,13 @@
 // Referrals need either a ledger or a roster exported with its notes column.
 //
 // Options: --basis=total_pnl|abs_pnl|wagered  --pool  --cap  --topPct  --floor
-//          --rate   --include-casino   --json   --csv
+//          --rate   --include-casino   --json   --csv   --no-referral-list
 
+const fs   = require('fs');
+const path = require('path');
 const { load }                        = require('../lib/load');
+const { readFile: readSheet }         = require('../lib/sheet');
+const { parseReferralMap }            = require('../lib/referral-map');
 const { buildBonusReport, toPayload } = require('../lib/bonus');
 const { buildReferralReport, toCsv }  = require('../lib/referrals');
 const { buildWeeklyReport, toWeeklyPayload } = require('../lib/weekly');
@@ -180,9 +184,22 @@ function main() {
     process.exit(1);
   }
 
+  // The maintained referral list is always in play unless turned off, since the
+  // platform's exports do not currently carry relationships.
+  const listPath = path.join(__dirname, '..', 'data', 'referrals.csv');
+  let seeded = [];
+  if (!flags['no-referral-list'] && fs.existsSync(listPath)) {
+    const parsed = parseReferralMap(readSheet(listPath), { source: 'data/referrals.csv' });
+    seeded = parsed.edges;
+    for (const problem of parsed.problems) console.error(`NOTE  data/referrals.csv: ${problem}`);
+  }
+
   const { accounts, referrals, week, warnings, seen, exclude,
     excludedTotal, excludedWagered, excludedAccounts } =
-    load(files, { includeExcluded: Boolean(flags['include-casino']) });
+    load(files, {
+      includeExcluded: Boolean(flags['include-casino']),
+      referrals: seeded,
+    });
   for (const warning of warnings) console.error(`NOTE  ${warning}`);
 
   const removed = [
