@@ -208,7 +208,7 @@ rewarded.
 1. Accounts with no action at all are excluded outright.
 2. Qualifying accounts are ranked by that total, largest first.
 3. Eligible = the top 20%, **but never fewer than 10** accounts (or than exist).
-4. The $3,000 pool is split in proportion to the same total.
+4. The $2,500 pool is split in proportion to the same total.
 5. Any award over the $500 per-account cap is trimmed, and the overflow
    re-spread among accounts still under the cap, repeating until settled.
 6. The cutoff is the total of the last account to make the cut.
@@ -239,11 +239,11 @@ Two other bases exist. `--basis=wagered` ranks on the amount actually staked and
 needs a wagers export. `--basis=abs_pnl` nets each client's bet types before
 taking the magnitude — on live data that shrinks the book total from $14,135.59
 to $10,656.59 and changes who holds the top ten. Other defaults are overridable
-too: `--pool=3000 --cap=500 --topPct=20 --floor=10`.
+too: `--pool=2500 --cap=500 --topPct=20 --floor=10`.
 
 > **Cap can ceiling the pool.** An eligible set of *n* accounts can absorb at
 > most `n × cap`. With the floor of 10 and a $500 cap that ceiling is $5,000, so
-> a $3,000 pool distributes fully — but a smaller set leaves a remainder. The
+> a $2,500 pool distributes fully — but a smaller set leaves a remainder. The
 > report exposes it as `unpaid` and the CLI prints a warning rather than letting
 > it disappear.
 

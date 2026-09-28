@@ -53,14 +53,14 @@ test('bonus leaderboard ranks by volume and excludes the non-wagering account', 
   // Four active accounts, so the floor of 10 clamps down to all four.
   assert.strictEqual(report.eligibleCount, 4);
 
-  // Pool 3000 over 960 total volume: CC300's share alone would exceed the cap.
+  // The pool over 960 total volume: CC300's share alone would exceed the cap.
   assert.strictEqual(Math.round(report.eligible[0].bonus), 500);
   for (const account of report.eligible) assert.ok(account.bonus <= 500 + 1e-6);
   // Only four accounts are eligible, so the $500 cap ceilings the payout at
-  // $2,000 and $1,000 of the pool cannot be distributed.
+  // $2,000 and the rest of the pool cannot be distributed.
   assert.strictEqual(report.payoutCeiling, 2000);
   assert.strictEqual(Math.round(report.totalPaid), 2000);
-  assert.strictEqual(Math.round(report.unpaid), 1000);
+  assert.strictEqual(Math.round(report.unpaid), report.config.pool - 2000);
 
   const payload = toPayload(report, week);
   assert.strictEqual(payload.week_end, '09-06-2026');

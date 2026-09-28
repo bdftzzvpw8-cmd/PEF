@@ -74,7 +74,7 @@ test('throws when no account has anything to rank on', () => {
 });
 
 test('defaults match the agreed rules', () => {
-  assert.strictEqual(DEFAULTS.pool, 3000);
+  assert.strictEqual(DEFAULTS.pool, 2500);
   assert.strictEqual(DEFAULTS.cap, 500);
   assert.strictEqual(DEFAULTS.topPct, 0.20);
   assert.strictEqual(DEFAULTS.minEligible, 10);
@@ -82,16 +82,16 @@ test('defaults match the agreed rules', () => {
 });
 
 test('reports the shortfall when the cap ceilings payout below the pool', () => {
-  // Five eligible accounts at a $500 cap can absorb $2,500 of a $3,000 pool.
-  const report = buildBonusReport(playersFrom([500, 400, 300, 200, 100]), { minEligible: 5 });
-  assert.strictEqual(report.payoutCeiling, 2500);
-  assert.strictEqual(Math.round(report.totalPaid), 2500);
+  // Four eligible accounts at a $500 cap can absorb $2,000 of the $2,500 pool.
+  const report = buildBonusReport(playersFrom([500, 400, 300, 200]), { minEligible: 4 });
+  assert.strictEqual(report.payoutCeiling, 2000);
+  assert.strictEqual(Math.round(report.totalPaid), 2000);
   assert.strictEqual(Math.round(report.unpaid), 500);
 });
 
 test('reports no shortfall when the eligible set can absorb the pool', () => {
   const report = buildBonusReport(playersFrom(Array.from({ length: 20 }, (_, i) => 100 - i)));
-  assert.ok(Math.abs(report.totalPaid - 3000) < 0.01);
+  assert.ok(Math.abs(report.totalPaid - DEFAULTS.pool) < 0.01);
   assert.strictEqual(Math.round(report.unpaid), 0);
 });
 
