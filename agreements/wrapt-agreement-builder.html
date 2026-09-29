@@ -116,7 +116,9 @@
     .foot{position:absolute;bottom:0;left:0;right:0}
     .f{background:transparent !important;border-bottom:1px solid var(--ink)}
     .f::placeholder{color:transparent}
-    textarea.f{border:1px solid var(--line)}
+    textarea.f{border:1px solid var(--line);min-height:32px}
+    html,body{line-height:1.33}
+    .extra h2{margin-top:5px}
     .pad{background:transparent}
     .key{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .extra.empty{display:none}
@@ -169,7 +171,7 @@
     </div>
   </div>
 
-  <div class="key"><b>Key terms.</b> Operator places <input class="f" type="number" min="1" max="20" data-k="coolers" aria-label="Number of coolers"> AI smart cooler(s) (the "Equipment") at the Host's location (the "Location") at no cost to Host. Operator installs, stocks and services the Equipment. Host receives a commission of <input class="f" type="number" min="0" max="100" step="0.5" data-k="commission" placeholder="%" aria-label="Commission percent"> % of Net Sales, paid monthly with a statement. Initial term: <select class="f" data-k="termYears" aria-label="Initial term in years"><option value="3">3 years</option><option value="4">4 years</option><option value="5">5 years</option></select> from the Installation Date.</div>
+  <div class="key"><b>Key terms.</b> Operator places <input class="f" type="number" min="1" max="20" data-k="coolers" aria-label="Number of coolers"> AI smart cooler(s) (the "Equipment") at the Host's location (the "Location") at no cost to Host. Operator installs, stocks and services the Equipment. Host receives a commission of <input class="f" type="number" min="0" max="100" step="0.5" data-k="commission" placeholder="%" aria-label="Commission percent"> % of Net Sales, paid monthly with a statement. Initial term: <select class="f" data-k="termYears" aria-label="Initial term in years"><option value="3">3 years</option><option value="4">4 years</option><option value="5">5 years</option></select> from the Installation Date. The first 90 days are a trial period with no commission. After that, commission is paid only for months with $1,000 or more in sales.</div>
 
   <h2>1. Placement and Access</h2>
   <p>Host grants Operator the right to place and operate the Equipment at a spot at the Location agreed by both parties in writing (email is sufficient). Host will provide, at no charge, the floor space, a standard grounded 110V electrical outlet within reach of the Equipment, and reasonable access during the Location's normal hours for installation, stocking, service and removal. Host will not move the Equipment without Operator's consent.</p>
@@ -184,6 +186,7 @@
 
   <h2>3. Commission</h2>
   <p>Operator will pay Host a commission of <span data-show="commissionWords">____</span> percent (<span data-show="commission">__</span>%) of Net Sales from the Equipment (the "Commission"). "Net Sales" means gross sales collected from the Equipment less sales tax, refunds, chargebacks and payment-processing fees. Operator will pay the Commission within fifteen (15) days after the end of each calendar month, with a statement showing that month's sales. Payment is by check or electronic transfer to the payee Host designates in writing. Host may request supporting sales reports up to twice per year. No Commission is payable for any period before Host has provided its payout details and a completed IRS Form W-9 to Operator.</p>
+  <p><b>Trial Period and Monthly Minimum.</b> The first ninety (90) days after the Installation Date are a trial period (the "Trial Period"). No Commission is earned or payable on sales made during the Trial Period. After the Trial Period, Commission is earned for a calendar month only if gross sales from the Equipment in that month are at least one thousand dollars ($1,000) (the "Monthly Minimum"). No Commission is earned for any month in which gross sales are below the Monthly Minimum, and sales do not carry forward between months. For the month in which the Trial Period ends, only sales after the Trial Period count, and the Monthly Minimum is prorated by the days remaining in that month.</p>
 
   <h2>4. Term and Renewal</h2>
   <p>This Agreement begins on the Effective Date and continues for <span data-show="termWords">three (3) years</span> from the Installation Date (the "Initial Term"). It then renews automatically for successive one-year terms unless either party gives written notice of non-renewal at least sixty (60) days before the end of the then-current term.</p>
