@@ -7,7 +7,7 @@
 <style>
   :root{--ink:#14212b;--ink-soft:#4c5a66;--line:#c9d3da;--paper:#fff;--wash:#f3f7f9;--brand:#0b6e7a;--brand-deep:#08525b;}
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--wash);color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-size:10.4pt;line-height:1.36}
+  html,body{background:var(--wash);color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-size:9.9pt;line-height:1.32}
   .doc{max-width:8.5in;margin:24px auto;background:var(--paper);box-shadow:0 6px 24px rgba(20,33,43,.10)}
   .pg{padding:0.6in 0.7in 0.55in;min-height:11in;position:relative}
   .pg+.pg{border-top:1px dashed var(--line)}
@@ -41,12 +41,14 @@
   @media print{
     html,body{background:#fff}
     .doc{max-width:none;margin:0;box-shadow:none}
-    .pg{height:9.9in;min-height:0;padding:0;overflow:hidden;break-after:page;page-break-after:always}
+    .pg{height:10.1in;min-height:0;padding:0;overflow:hidden;break-after:page;page-break-after:always}
     .pg:last-child{break-after:auto;page-break-after:auto}
     .pg+.pg{border-top:0}
     .foot{position:absolute;bottom:0;left:0;right:0}
+    .line{height:20px !important;margin-bottom:2px}.lbl{margin-bottom:5px}.sig{margin-top:8px}
+    h2{margin:7px 0 2px}
     .key{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    @page{size:Letter;margin:0.5in 0.7in 0.55in}
+    @page{size:Letter;margin:0.45in 0.7in 0.45in}
   }
 </style>
 </head>
@@ -77,7 +79,7 @@
     </div>
   </div>
 
-  <div class="key"><b>Key terms.</b> Operator places <span class="fill">1</span> AI smart cooler(s) (the "Equipment") at the Host's location (the "Location") at no cost to Host. Operator installs, stocks and services the Equipment. Host receives a commission of <span class="fill empty" style="min-width:40px"></span> % of Net Sales, paid monthly with a statement. Initial term: <span class="box"></span>3 years <span class="box"></span>4 years <span class="box"></span>5 years from the Installation Date. The first 90 days are a trial period with no commission. After that, commission is paid only for months with $1,000 or more in sales.</div>
+  <div class="key"><b>Key terms.</b> Operator places <span class="fill">1</span> AI smart cooler(s) (the "Equipment") at the Host's location (the "Location") at no cost to Host. Operator installs, stocks and services the Equipment. Host receives a commission of <span class="fill empty" style="min-width:40px"></span> % of Net Sales, paid monthly with a statement. Initial term: <span class="box"></span>3 years <span class="box"></span>4 years <span class="box"></span>5 years from the Installation Date. The first 90 days are a trial period with no commission. After that, commission is paid only for months with $1,000 or more in sales. Custom wrap (Section 9): <span class="box"></span>No <span class="box"></span>Yes, wrap cost $<span class="fill empty" style="min-width:70px"></span> plus a $200 installation fee, recovered from commission before any is paid.</div>
 
   <h2>1. Placement and Access</h2>
   <p>Host grants Operator the right to place and operate the Equipment at a spot at the Location agreed by both parties in writing (email is sufficient). Host will provide, at no charge, the floor space, a standard grounded 110V electrical outlet within reach of the Equipment, and reasonable access during the Location's normal hours for installation, stocking, service and removal. Host will not move the Equipment without Operator's consent.</p>
@@ -105,7 +107,7 @@
   <ol class="sub">
     <li>Either party may terminate this Agreement if the other party materially breaches it and does not cure the breach within thirty (30) days after written notice describing the breach.</li>
     <li>Operator may terminate on thirty (30) days' written notice if the Equipment's sales do not support continued service, if the Location closes or relocates, or if the Equipment is repeatedly damaged or tampered with at the Location.</li>
-    <li>Host may terminate on sixty (60) days' written notice if Host permanently closes the Location or sells the business, provided Host gives Operator notice of any sale at least sixty (60) days before closing and makes reasonable efforts to have the buyer assume this Agreement.</li>
+    <li>Host may terminate on sixty (60) days' written notice if Host permanently closes the Location or sells the business, and will make reasonable efforts to have a buyer assume this Agreement.</li>
     <li>Except as stated in this Section 5, neither party may terminate this Agreement for convenience during the Initial Term.</li>
     <li>On expiration or termination, Operator will remove the Equipment within fourteen (14) days and pay any commission then owed. Host will allow access for removal.</li>
   </ol>
@@ -117,15 +119,18 @@
   <p>During the term, Host will not place, or allow a third party to place, any other vending machine, smart cooler, micro-market or unattended retail unit selling beverages or snacks at the Location without Operator's written consent. This does not restrict Host's own staffed food or beverage service.</p>
 
   <h2>8. Liability</h2>
-  <p>Each party is responsible for losses caused by its own negligence or willful misconduct and for that of its employees and contractors. Operator is responsible for the products sold from the Equipment. Neither party is liable to the other for lost profits or indirect, incidental or consequential damages arising from this Agreement, except for a party's indemnity obligations under this Section or a breach of Section 6 or 7. Each party will indemnify the other against third-party claims to the extent caused by the indemnifying party's negligence or breach of this Agreement.</p>
+  <p>Each party is responsible for losses caused by its own negligence or willful misconduct, including that of its employees and contractors, and will indemnify the other against third-party claims to that extent. Operator is responsible for the products sold from the Equipment. Neither party is liable to the other for lost profits or indirect or consequential damages, except for indemnity obligations or a breach of Section 6, 7 or 9.</p>
 
-  <h2>9. General</h2>
+  <h2>9. Optional Custom Wrap</h2>
+  <p>If Host elects a custom wrap in the Key Terms, Operator will produce and install a vinyl wrap on the Equipment featuring Host's branding. Operator's cost of the wrap plus a two hundred dollar ($200) installation fee (together, the "Wrap Costs") are recovered from Host's Commission: all Commission otherwise earned is retained by Operator until the Wrap Costs are fully recovered, and Commission is paid to Host only after that. Each monthly statement will show the balance remaining. If this Agreement ends before the Wrap Costs are recovered, Host will pay the unrecovered balance within thirty (30) days, except where Operator terminates under Section 5(b). Host will approve a design proof in writing and is responsible for its content; the payment panel, product window and a small Operator mark remain unobstructed. Host grants Operator a limited license to reproduce Host's name, logo and marks on the wrap and in photographs of the installed Equipment, and warrants that it holds the rights to grant that license. The wrap is part of the Equipment and remains Operator's property. Damage beyond normal wear caused by Host, its employees, contractors or invitees is repaired at Host's cost, and re-wraps requested by Host are new Wrap Costs.</p>
+
+  <h2>10. General</h2>
   <ol class="sub">
     <li><b>Notices.</b> Written notices go to the addresses above (email is sufficient) and are effective on receipt.</li>
     <li><b>Assignment.</b> This Agreement binds and benefits the parties' successors and permitted assigns. Host will not assign it without Operator's consent, except to a buyer of the Location's business that assumes it in writing.</li>
     <li><b>Relationship.</b> The parties are independent contractors. Nothing here creates a partnership, joint venture, lease or employment relationship.</li>
     <li><b>Governing law.</b> Tennessee law governs this Agreement. The courts located in Williamson County, Tennessee have exclusive jurisdiction over any dispute arising from it.</li>
-    <li><b>Entire agreement.</b> This is the entire agreement between the parties on its subject and replaces any prior discussions or proposals. Changes must be in a writing signed by both parties. If any provision is unenforceable, the rest remains in effect. Signatures delivered electronically or by PDF are as effective as originals.</li>
+    <li><b>Entire agreement.</b> This is the entire agreement on its subject and replaces prior discussions and proposals. Changes must be in a writing signed by both parties. If any provision is unenforceable, the rest remains in effect. Signatures delivered electronically or by PDF are as effective as originals.</li>
   </ol>
 
   <p style="margin-top:8px">The parties have signed this Agreement as of the Effective Date.</p>
