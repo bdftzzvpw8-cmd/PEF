@@ -4,52 +4,63 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wrapt Placement Agreement</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=Inter:wght@400;600&family=Space+Mono:wght@400;700&display=swap">
 <style>
-  :root{--ink:#14212b;--ink-soft:#4c5a66;--line:#c9d3da;--paper:#fff;--wash:#f3f7f9;--brand:#0b6e7a;--brand-deep:#08525b;}
+  :root{--char:#2B2B28;--bone:#F3F1EC;--white:#FFFFFF;--stone:#D7D2C7;--taupe:#A39C8F;--graph:#55534E;--err:#A33B3B;
+    --arch:'Archivo',Impact,'Arial Black',sans-serif;--inter:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;--mono:'Space Mono',Menlo,Consolas,monospace;
+    --ink:#2B2B28;--ink-soft:#55534E;--line:#D7D2C7;--paper:#FFFFFF;--wash:#F3F1EC;--brand:#2B2B28;--brand-deep:#2B2B28;--brand-soft:#F3F1EC;--accent:#F3F1EC;--field:#FFFFFF;--field-focus:#F3F1EC;--ok:#55534E;--warn:#A33B3B;--sans:var(--inter);--serif:var(--inter)}
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--wash);color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-size:10.4pt;line-height:1.38}
-  .doc{max-width:8.5in;margin:24px auto;background:var(--paper);box-shadow:0 6px 24px rgba(20,33,43,.10)}
+  html,body{background:var(--bone);color:var(--char);font-family:var(--inter);font-size:10.4pt;line-height:1.5}
+  body{padding-bottom:40px}
+  .k{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+  .wm{display:inline-block;border:3px solid currentColor;padding:8px 12px 6px;font-family:var(--arch);font-weight:900;font-size:16px;letter-spacing:-.02em;line-height:1;text-transform:uppercase}
+  :focus-visible{outline:2px solid var(--char);outline-offset:2px}
+  .doc{max-width:8.5in;margin:16px auto 24px;background:var(--white);border:2px solid var(--char)}
   .pg{padding:0.6in 0.7in 0.55in;min-height:11in;position:relative}
-  .pg+.pg{border-top:1px dashed var(--line)}
-  .top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--brand-deep);padding-bottom:8px;margin-bottom:12px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
-  .logo{font-size:22px;font-weight:800;color:var(--brand-deep);line-height:1}
-  .logo small{display:block;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin-top:4px}
-  .top .r{text-align:right;font-size:9.5px;color:var(--ink-soft);line-height:1.4}
-  h1{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:17px;font-weight:800;letter-spacing:.01em;margin-bottom:6px}
-  .intro{margin-bottom:8px}
-  .parties{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 12px}
-  .party{border:1px solid var(--line);padding:8px 10px;font-size:9.8pt}
-  .party b{display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--brand);margin-bottom:4px}
-  .party div{margin:2px 0}
-  h2{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-deep);margin:9px 0 3px}
-  p{margin-bottom:5px;text-align:justify}
+  .pg+.pg{border-top:1px dashed var(--taupe)}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--char);padding-bottom:12px;margin-bottom:14px}
+  .brand small{display:block;margin-top:8px;color:var(--taupe)}
+  .top .r{text-align:right;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--graph);line-height:1.6}
+  .top .r b{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--char);margin-bottom:2px}
+  h1{font-family:var(--arch);font-weight:900;font-size:20px;letter-spacing:-.02em;text-transform:uppercase;margin-bottom:8px;line-height:1.1}
+  h2{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--char);margin:12px 0 4px;padding-bottom:3px;border-bottom:1px solid var(--stone)}
+  p{margin-bottom:6px}
+  .foot{position:absolute;left:0.7in;right:0.7in;bottom:0.3in;display:flex;justify-content:space-between;font-family:var(--mono);font-size:8pt;letter-spacing:.08em;color:var(--taupe);border-top:1px solid var(--stone);padding-top:4px}
+  .parties{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 12px}
+  .party{border:1px solid var(--stone);padding:9px 11px;font-size:9.8pt}
+  .party b{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--taupe);margin-bottom:5px}
+  .party div{margin:3px 0;display:flex;align-items:baseline;gap:4px;flex-wrap:wrap}
+  .party div label{color:var(--graph);white-space:nowrap;font-size:9.4pt}
   ol.sub{margin:2px 0 4px 20px}
   ol.sub li{margin-bottom:3px}
-  .fill{display:inline-block;border-bottom:1px solid var(--ink);padding:0 4px;min-width:60px;line-height:1.2}
+  .key{border:2px solid var(--char);background:var(--bone);padding:9px 12px;margin:8px 0 10px;font-size:10.2pt}
+  .key b{font-family:var(--arch);font-weight:700;letter-spacing:-.01em}
+  .box{display:inline-block;width:11px;height:11px;border:1.5px solid var(--char);vertical-align:-1px;margin:0 3px 0 6px}
+  .sig{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:14px}
+  .col b.h{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--taupe);margin-bottom:8px}
+  .lbl{font-family:var(--mono);font-size:8pt;letter-spacing:.08em;color:var(--graph);margin:2px 0 8px}
+  .fill{display:inline-block;border-bottom:1px solid var(--char);padding:0 4px;min-width:60px;line-height:1.2}
   .fill.empty{height:1.05em;vertical-align:baseline}
-  .box{display:inline-block;width:11px;height:11px;border:1.2px solid var(--ink);vertical-align:-1px;margin:0 3px 0 6px}
-  .key{background:var(--wash);border-left:3px solid var(--brand);padding:7px 10px;margin:6px 0 8px;font-size:10.2pt}
-  .key b{color:var(--brand-deep)}
-  .sig{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:14px}
-  .sig .col b{display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--brand);margin-bottom:10px}
-  .line{border-bottom:1px solid var(--ink);height:26px;margin-bottom:3px}
-  .lbl{font-size:8.5pt;color:var(--ink-soft);margin-bottom:9px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
-  .foot{position:absolute;left:0.7in;right:0.7in;bottom:0.3in;display:flex;justify-content:space-between;font-size:8pt;color:var(--ink-soft);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;border-top:1px solid var(--line);padding-top:4px}
-  .init{font-size:8.5pt;color:var(--ink-soft);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;margin-top:6px}
-  .init .fill{min-width:44px}
+  .line{border-bottom:1px solid var(--char);height:26px;margin-bottom:3px}
+  .init{font-family:var(--mono);font-size:8.5pt;color:var(--graph);margin-top:6px}
   @media (max-width:700px){.pg{padding:20px 16px 60px;min-height:0}.parties,.sig{grid-template-columns:1fr}.foot{left:16px;right:16px}}
   @media print{
-    html,body{background:#fff;font-size:10.5pt;line-height:1.4}
-    .doc{max-width:none;margin:0;box-shadow:none}
+    html,body{background:#fff;font-size:10pt;line-height:1.36}
+    .doc{max-width:none;margin:0;border:0}
     .pg{min-height:0;height:auto;padding:0;overflow:visible}
     .pg+.pg{border-top:0}
     .foot{display:none}
-    .top{margin-bottom:14px}
-    h2{break-after:avoid;page-break-after:avoid;margin-top:12px}
+    .top{margin-bottom:12px;padding-bottom:10px}
+    h1{font-size:18px}
+    h2{break-after:avoid;page-break-after:avoid;margin:9px 0 3px}
+    p{margin-bottom:4px}ol.sub li{margin-bottom:2px}
+    .party{font-size:9.4pt;padding:7px 10px}.parties{margin:8px 0 10px}
+    .key{padding:7px 10px;margin:6px 0 8px;font-size:9.8pt}
+    .sig{margin-top:10px}.line{height:22px}.lbl{margin:1px 0 6px}
     p,li,.party,.key{break-inside:avoid;page-break-inside:avoid}
     .parties,.sig{break-inside:avoid;page-break-inside:avoid}
     .key{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    @page{size:Letter;margin:0.75in 0.8in}
+    @page{size:Letter;margin:0.7in 0.75in}
   }
 </style>
 </head>
@@ -58,8 +69,8 @@
 
 <div class="pg">
   <div class="top">
-    <div class="logo">Wrapt<small>Smart cooler placement</small></div>
-    <div class="r">Wrapt · Franklin, Tennessee<br>615.948.2976 · paige@wraptvending.com<br>wraptvending.com</div>
+    <div class="brand"><span class="wm">Wrapt</span><small class="k">Smart coolers · placed free</small></div>
+    <div class="r"><b>Location Agreement</b>Wrapt Intelligence LLC · Franklin, Tennessee<br>615.948.2976 · paige@wraptvending.com</div>
   </div>
 
   <h1>Smart Cooler Placement Agreement</h1>

@@ -1,0 +1,106 @@
+/* Wrapt proposal template. Used by tools/gen-proposals.js (Node) and embedded into WraptCloser (browser).
+   Brand: Gallery Neutral v2.0. Charcoal and bone, Archivo / Inter / Space Mono, one 3px frame per surface. */
+(function (root, factory) {
+  if (typeof module !== 'undefined' && module.exports) module.exports = factory();
+  else root.WraptProposal = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var FONTS = 'https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=Inter:wght@400;600&family=Space+Mono:wght@400;700&display=swap';
+
+  var VENUES = {
+    'Gym & fitness': { who: 'members', lead: 'Members grab a protein shake, electrolyte drink or cold water on the way out. Tap a card, take it, walk off. No front-desk time, no cash, no coins.', mix: 'Protein shakes, electrolyte and recovery drinks, cold water, energy drinks and grab-and-go protein snacks. Tell us what your members ask for and we stock it.', spot: 'A spot near the exit or front desk with a standard wall outlet.', approval: 'The agreement is three pages. I will bring it with me and walk you through it.' },
+    'Hotel': { who: 'guests', lead: 'Guests grab drinks and snacks at any hour. Tap a card, take it, and it checks out on its own. It reads as your amenity, and the front desk never touches it.', mix: 'Cold drinks, sparkling water, coffee drinks, snacks and late-night essentials. Travelers buy what they forgot to pack.', spot: 'A spot in the lobby or near the elevators with a standard wall outlet.', approval: 'The agreement is three pages. If the owner or management company needs to sign off, I am glad to send it to them directly.' },
+    'Apartment community': { who: 'residents', lead: 'A 24/7 resident amenity for the lobby, clubroom or mail room. Residents tap a card, take a drink or snack, and it checks out on its own. Your team never handles money or restocking.', mix: 'Cold drinks, sparkling water, coffee drinks, snacks and a few household basics residents run out of.', spot: 'A spot in a common area with a standard wall outlet.', approval: 'The agreement is three pages. If the management company needs to approve a vendor, tell me who to send it to and I will take that off your plate.' },
+    'Senior living': { who: 'residents, families and staff', lead: 'A 24/7 resident amenity for the lobby or clubroom. Residents, families and staff tap a card, take a drink or snack, and it checks out on its own. Your team never handles money or restocking.', mix: 'Waters, juices, coffee drinks, and snacks residents and visiting families like. We choose the mix with you and adjust it as we see what sells.', spot: 'A spot in a common area with a standard wall outlet.', approval: 'The agreement is three pages. If corporate or your regional office needs to approve a vendor, tell me who to send it to and I will take that off your plate.' },
+    'Office / coworking': { who: 'employees and tenants', lead: 'Employees and tenants get cold drinks and snacks without leaving the building. Tap a card, take it, and it checks out on its own. Nothing for your team to manage.', mix: 'Cold drinks, sparkling water, coffee and energy drinks, and snacks for the afternoon slump.', spot: 'A spot in the break room or lobby with a standard wall outlet.', approval: 'The agreement is three pages. If facilities or the building owner needs to sign off, I am glad to send it to them directly.' },
+    'Dealership / auto repair': { who: 'customers', lead: 'Customers waiting on you grab a drink or snack themselves. Tap a card, take it, and it checks out on its own. The wait gets better and it costs you nothing.', mix: 'Cold drinks, coffee drinks, water and snacks for people waiting on a car.', spot: 'A spot in the waiting area with a standard wall outlet.', approval: 'The agreement is three pages. I will bring it with me and walk you through it.' },
+    'Laundromat': { who: 'customers', lead: 'Customers waiting on a load grab a cold drink or snack themselves. Tap a card, take it, and it checks out on its own. No change machine, no cash, nothing for you to handle.', mix: 'Cold drinks, water, snacks and a few laundry basics people forget to bring.', spot: 'A spot along a wall near the seating with a standard outlet.', approval: 'The agreement is three pages. I will bring it with me and walk you through it.' },
+    'Medical / clinic / vet': { who: 'patients and visitors', lead: 'Patients and visitors waiting on you grab a drink or snack themselves. Tap a card, take it, and it checks out on its own. The wait gets better and it costs you nothing.', mix: 'Water, juices, coffee drinks and light snacks suited to a waiting room.', spot: 'A spot in the waiting area with a standard wall outlet.', approval: 'The agreement is three pages. If the practice owner or administrator needs to sign, I am glad to send it to them directly.' },
+    'Salon / beauty / tattoo': { who: 'clients', lead: 'Clients in the chair or waiting grab a drink or snack themselves. Tap a card, take it, and it checks out on its own. The visit gets nicer and it costs you nothing.', mix: 'Sparkling water, cold drinks, coffee drinks and light snacks.', spot: 'A spot near the waiting area with a standard wall outlet.', approval: 'The agreement is three pages. I will bring it with me and walk you through it.' },
+    'Church / school / youth': { who: 'visitors and families', lead: 'Visitors and families grab a drink or snack anytime. Tap a card, take it, and it checks out on its own. No staff time, no cash handling.', mix: 'Water, juices, cold drinks and family-friendly snacks.', spot: 'A spot in a lobby or common area with a standard wall outlet.', approval: 'The agreement is three pages. If a board or administrator needs to approve it, tell me who to send it to.' },
+    'Entertainment / golf': { who: 'guests', lead: 'Guests grab a cold drink or snack between rounds or events. Tap a card, take it, and it checks out on its own. No staff time, no cash handling.', mix: 'Cold drinks, sports drinks, water and grab-and-go snacks.', spot: 'A spot near the entrance or turn with a standard wall outlet.', approval: 'The agreement is three pages. I will bring it with me and walk you through it.' },
+    'Other': { who: 'customers and staff', lead: 'Customers and staff grab a cold drink or snack anytime. Tap a card, take it, and it checks out on its own.', mix: 'Cold drinks, water, coffee drinks and snacks, chosen with you and adjusted as we see what sells.', spot: 'A spot in a common area with a standard wall outlet.', approval: 'The agreement is three pages. I will bring it with me and walk you through it.' }
+  };
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fmtDate(iso) { if (!iso) return ''; var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso); if (!m) return iso; return ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][+m[2] - 1] + ' ' + (+m[3]) + ', ' + m[1]; }
+  function firstName(s) { return (s || '').trim().split(/\s+/)[0] || 'there'; }
+  function capFirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function today() { var d = new Date(), z = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
+  function tel(s) { return (s || '').replace(/[^\d+]/g, ''); }
+
+  var CSS = [
+    ':root{--char:#2B2B28;--bone:#F3F1EC;--white:#FFFFFF;--stone:#D7D2C7;--taupe:#A39C8F;--graph:#55534E;--err:#A33B3B;',
+    "--arch:'Archivo',Impact,'Arial Black',sans-serif;--inter:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;--mono:'Space Mono',Menlo,Consolas,monospace}",
+    '*{box-sizing:border-box;margin:0;padding:0}',
+    'html,body{background:var(--bone);color:var(--char);font-family:var(--inter);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}',
+    '.sheet{max-width:820px;margin:32px auto;background:var(--white);border:2px solid var(--char)}',
+    '.wm{display:inline-block;border:3px solid currentColor;padding:9px 13px 7px;font-family:var(--arch);font-weight:900;font-size:18px;letter-spacing:-.02em;line-height:1;text-transform:uppercase}',
+    '.k{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase}',
+    'header{background:var(--char);color:var(--bone);padding:34px 44px 30px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}',
+    'header .brand small{display:block;margin-top:12px;color:var(--taupe)}',
+    'header .meta{text-align:right}header .meta .k{color:var(--taupe)}header .meta b{display:block;font-family:var(--arch);font-weight:700;font-size:17px;margin:6px 0 4px;letter-spacing:-.01em}header .meta span{font-size:13px;opacity:.75}',
+    '.hero{padding:34px 44px 10px}',
+    '.idx{display:flex;align-items:center;gap:14px;color:var(--taupe);margin-bottom:12px}.idx::after{content:"";flex:1;height:1px;background:var(--stone)}',
+    'h1{font-family:var(--arch);font-weight:900;font-size:32px;line-height:1.05;letter-spacing:-.02em;text-transform:uppercase;margin:6px 0 14px;text-wrap:balance}',
+    '.hero p{font-size:16px;max-width:62ch}',
+    'section{padding:24px 44px 28px;border-top:2px solid var(--char)}',
+    '.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px}',
+    '.step{border:1px solid var(--stone);padding:16px 16px 14px}',
+    '.step .n{color:var(--taupe);margin-bottom:10px}',
+    '.step h3{font-family:var(--arch);font-weight:700;font-size:16px;margin-bottom:5px;letter-spacing:-.01em}',
+    '.step p{font-size:13.5px;color:var(--graph)}',
+    '.split{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;margin-top:6px}',
+    'ul{list-style:none}li{position:relative;padding-left:22px;margin-bottom:9px;font-size:14.5px}',
+    'li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;background:var(--char)}',
+    'h2{font-family:var(--arch);font-weight:700;font-size:16px;letter-spacing:-.01em;margin-bottom:10px}',
+    '.big{background:var(--char);color:var(--bone);padding:18px 20px;margin-bottom:22px}',
+    '.big .pct{display:block;font-family:var(--arch);font-weight:900;font-size:20px;line-height:1.15;letter-spacing:-.01em;text-transform:uppercase;margin-bottom:8px}',
+    '.big span{font-size:13.5px;opacity:.85}',
+    '.need{font-size:14.5px}',
+    '.note{border:2px solid var(--char);padding:14px 18px;font-size:14.5px;background:var(--bone)}',
+    '.cta{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;background:var(--char);color:var(--bone);padding:26px 44px;border-top:2px solid var(--char)}',
+    '.cta .idx{color:var(--taupe);margin-bottom:8px}.cta .idx::after{background:rgba(243,241,236,.25)}',
+    '.cta p{font-size:16px;max-width:48ch}',
+    '.cta a.btn{display:inline-block;background:var(--bone);color:var(--char);font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;text-decoration:none;padding:14px 20px;white-space:nowrap}',
+    'footer{padding:18px 44px 22px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--graph);border-top:1px solid var(--stone)}',
+    'footer b{color:var(--char);font-family:var(--arch);font-weight:700}',
+    'footer .c{text-align:right;font-family:var(--mono);font-size:11px;letter-spacing:.06em}footer a{color:var(--char);text-decoration:none}',
+    '@media (max-width:640px){header,.hero,section,.cta,footer{padding-left:20px;padding-right:20px}.sheet{margin:0;border-left:0;border-right:0}.steps,.split{grid-template-columns:1fr}header .meta{text-align:left}h1{font-size:26px}footer .c{text-align:left}}',
+    '@media print{html,body{background:#fff}.sheet{margin:0;max-width:none;border:0}header,.cta,.big,.note,.step{-webkit-print-color-adjust:exact;print-color-adjust:exact}section,.cta,footer{break-inside:avoid}header{padding:22px 32px 18px}.hero{padding:20px 32px 4px}section{padding:14px 32px 16px}.cta{padding:18px 32px}footer{padding:12px 32px}h1{font-size:25px;margin:4px 0 10px}.hero p{font-size:14.5px}.step{padding:12px 14px 10px}li{margin-bottom:6px;font-size:13.5px}h2{margin-bottom:8px}.split{gap:24px}@page{size:Letter;margin:0.5in 0.6in}}'
+  ].join('\n');
+
+  function proposalHTML(p, SET) {
+    var co = p.company || 'your location', short = (p.short || p.company || 'your location').trim(), fee = SET.installFee || '200';
+    var brand = SET.opName || 'Wrapt', legal = SET.opLegal || brand, me = firstName(SET.opContact);
+    var contactName = (SET.opContact || '').split(',')[0].trim(), contactTitle = ((SET.opContact || '').split(',')[1] || '').trim();
+    return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+      '<title>' + esc(brand) + ' Proposal for ' + esc(co) + '</title>\n<link rel="stylesheet" href="' + FONTS + '">\n<style>\n' + CSS + '\n</style>\n</head>\n<body>\n<div class="sheet">\n' +
+      '  <header>\n    <div class="brand"><span class="wm">' + esc(brand) + '</span><small class="k">Smart coolers · placed free</small></div>\n' +
+      '    <div class="meta"><span class="k">Proposal</span><b>Prepared for ' + esc(co) + '</b><span>' + esc(p.venue) + ' · ' + esc(fmtDate(p.pdate || today())) + '</span></div>\n  </header>\n' +
+      '  <div class="hero">\n    <div class="idx k">01 · The offer</div>\n    <h1>A smart cooler for ' + esc(co) + ', placed free.</h1>\n    <p>' + esc(p.lead) + '</p>\n  </div>\n' +
+      '  <section>\n    <div class="idx k">02 · How it works</div>\n    <div class="steps">\n' +
+      '      <div class="step"><div class="n k">01</div><h3>Placed free</h3><p>We deliver and set up the cooler at no cost. You choose the spot, we handle the rest.</p></div>\n' +
+      '      <div class="step"><div class="n k">02</div><h3>Stocked and serviced</h3><p>Every week. Your team never restocks, never handles cash, never fields a refund.</p></div>\n' +
+      '      <div class="step"><div class="n k">03</div><h3>You earn a share</h3><p>' + esc(capFirst(short)) + ' earns a share of every sale after a 90-day trial, paid monthly with a statement.</p></div>\n' +
+      '    </div>\n  </section>\n' +
+      '  <section>\n    <div class="idx k">03 · What ' + esc(short) + ' gets</div>\n    <div class="split">\n      <div>\n        <ul>\n' +
+      '          <li>The cooler, installed by us, at no cost.</li>\n' +
+      '          <li>Weekly stocking and service. Nothing for your team to manage.</li>\n' +
+      '          <li>A product mix built for your ' + esc(p.who || 'people') + '. ' + esc(p.mix) + '</li>\n' +
+      '          <li>Tap-to-pay checkout. No cash, no coins, no lines.</li>\n' +
+      '          <li>Optional custom wrap in your branding, so the cooler looks like part of ' + esc(short) + '. We front the wrap and a $' + esc(fee) + ' install fee and recover them from your commission before payouts begin.</li>\n' +
+      '        </ul>\n      </div>\n      <div>\n' +
+      '        <div class="big"><span class="pct">A share of every sale</span><span>Paid monthly with a statement, starting after a 90-day trial period. Commission is paid for each month the cooler sells $1,000 or more. We agree the rate together on the walkthrough.</span></div>\n' +
+      '        <h2>What we need</h2>\n        <p class="need">' + esc(p.spot) + '</p>\n      </div>\n    </div>\n  </section>\n' +
+      '  <section>\n    <div class="idx k">04 · The agreement</div>\n    <div class="note">' + esc(p.approval) + '</div>\n  </section>\n' +
+      '  <div class="cta">\n    <div>\n      <div class="idx k">05 · Next step</div>\n      <p>A 10-minute walk of the space is all it takes. I will bring the agreement and we can pick the spot together.</p>\n    </div>\n' +
+      '    <a class="btn" href="tel:' + esc(tel(SET.opPhone)) + '">Call or text ' + esc(me) + ' · ' + esc(SET.opPhone) + '</a>\n  </div>\n' +
+      '  <footer>\n    <div><b>' + esc(contactName) + '</b><br>' + esc(contactTitle) + (contactTitle ? ', ' : '') + esc(legal) + ' · ' + esc(SET.opAddress) + '</div>\n' +
+      '    <div class="c"><a href="tel:' + esc(tel(SET.opPhone)) + '">' + esc(SET.opPhone) + '</a><br><a href="mailto:' + esc(SET.opEmail) + '">' + esc(SET.opEmail) + '</a><br><a href="https://' + esc(SET.opWeb) + '">' + esc(SET.opWeb) + '</a></div>\n' +
+      '  </footer>\n</div>\n</body>\n</html>\n';
+  }
+
+  return { VENUES: VENUES, FONTS: FONTS, proposalHTML: proposalHTML, esc: esc, fmtDate: fmtDate, firstName: firstName, capFirst: capFirst, today: today };
+});

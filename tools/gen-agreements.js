@@ -1,9 +1,21 @@
-<!DOCTYPE html>
+// Regenerates the printable agreement template and prefilled copies. Run: node tools/gen-agreements.js
+const fs=require('fs'),path=require('path');
+const OUT=path.join(__dirname,'..','agreements');
+const HOSTS=[
+ {slug:'template',company:'',address:'',venue:''},
+ {slug:'legacy-fit',company:'Legacy Fit',address:'',venue:'Gym & fitness'},
+ {slug:'baymont-franklin',company:'Baymont by Wyndham Franklin',address:'',venue:'Hotel'},
+ {slug:'american-house-brentwood',company:'American House Brentwood',address:'',venue:'Senior living community'},
+];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const blank=(v,w)=>v?`<span class="fill">${esc(v)}</span>`:`<span class="fill empty" style="min-width:${w||220}px"></span>`;
+
+const page=h=>`<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wrapt Placement Agreement · American House Brentwood</title>
+<title>Wrapt Placement Agreement${h.company?' · '+esc(h.company):''}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=Inter:wght@400;600&family=Space+Mono:wght@400;700&display=swap">
 <style>
   :root{--char:#2B2B28;--bone:#F3F1EC;--white:#FFFFFF;--stone:#D7D2C7;--taupe:#A39C8F;--graph:#55534E;--err:#A33B3B;
@@ -74,7 +86,7 @@
   </div>
 
   <h1>Smart Cooler Placement Agreement</h1>
-  <p class="intro">This Smart Cooler Placement Agreement (the "Agreement") is made as of <span class="fill empty" style="min-width:150px"></span> (the "Effective Date") between the parties below.</p>
+  <p class="intro">This Smart Cooler Placement Agreement (the "Agreement") is made as of ${blank('',150)} (the "Effective Date") between the parties below.</p>
 
   <div class="parties">
     <div class="party"><b>Operator</b>
@@ -85,14 +97,14 @@
       <div>Email: paige@wraptvending.com</div>
     </div>
     <div class="party"><b>Host</b>
-      <div>Business: <span class="fill">American House Brentwood</span></div>
-      <div>Address: <span class="fill empty" style="min-width:220px"></span></div>
-      <div>Contact: <span class="fill empty" style="min-width:110px"></span> Title: <span class="fill empty" style="min-width:90px"></span></div>
-      <div>Phone: <span class="fill empty" style="min-width:100px"></span> Email: <span class="fill empty" style="min-width:130px"></span></div>
+      <div>Business: ${blank(h.company,200)}</div>
+      <div>Address: ${blank(h.address,220)}</div>
+      <div>Contact: ${blank('',110)} Title: ${blank('',90)}</div>
+      <div>Phone: ${blank('',100)} Email: ${blank('',130)}</div>
     </div>
   </div>
 
-  <div class="key"><b>Key terms.</b> Operator places <span class="fill">1</span> AI smart cooler(s) (the "Equipment") at the Host's location (the "Location") at no cost to Host. Operator installs, stocks and services the Equipment. Host receives a commission of <span class="fill empty" style="min-width:40px"></span> % of Net Sales, paid monthly with a statement. Initial term: <span class="box"></span>3 years <span class="box"></span>4 years <span class="box"></span>5 years from the Installation Date. The first 90 days are a trial period with no commission. After that, commission is paid only for months with $1,000 or more in sales. Custom wrap (Section 9): <span class="box"></span>No <span class="box"></span>Yes, wrap cost $<span class="fill empty" style="min-width:70px"></span> plus a $200 installation fee, recovered from commission before any is paid.</div>
+  <div class="key"><b>Key terms.</b> Operator places ${blank('1',30)} AI smart cooler(s) (the "Equipment") at the Host's location (the "Location") at no cost to Host. Operator installs, stocks and services the Equipment. Host receives a commission of ${blank("",40)} % of Net Sales, paid monthly with a statement. Initial term: <span class="box"></span>3 years <span class="box"></span>4 years <span class="box"></span>5 years from the Installation Date. The first 90 days are a trial period with no commission. After that, commission is paid only for months with $1,000 or more in sales. Custom wrap (Section 9): <span class="box"></span>No <span class="box"></span>Yes, wrap cost $${blank('',70)} plus a $200 installation fee, recovered from commission before any is paid.</div>
 
   <h2>1. Placement and Access</h2>
   <p>Host grants Operator the right to place and operate the Equipment at a spot at the Location agreed by both parties in writing (email is sufficient). Host will provide, at no charge, the floor space, a standard grounded 110V electrical outlet within reach of the Equipment, and reasonable access during the Location's normal hours for installation, stocking, service and removal. Host will not move the Equipment without Operator's consent.</p>
@@ -106,7 +118,7 @@
   </ol>
 
   <h2>3. Commission</h2>
-  <p>Operator will pay Host a commission of <span class="fill empty" style="min-width:120px"></span> percent (<span class="fill empty" style="min-width:40px"></span> %) of Net Sales from the Equipment (the "Commission"). "Net Sales" means gross sales collected from the Equipment less sales tax, refunds, chargebacks and payment-processing fees. Operator will pay the commission within fifteen (15) days after the end of each calendar month, with a statement showing that month's sales. Payment is by check or electronic transfer to the payee Host designates in writing. Host may request supporting sales reports up to twice per year. No Commission is payable for any period before Host has provided its payout details and a completed IRS Form W-9 to Operator.</p>
+  <p>Operator will pay Host a commission of ${blank("",120)} percent (${blank("",40)} %) of Net Sales from the Equipment (the "Commission"). "Net Sales" means gross sales collected from the Equipment less sales tax, refunds, chargebacks and payment-processing fees. Operator will pay the commission within fifteen (15) days after the end of each calendar month, with a statement showing that month's sales. Payment is by check or electronic transfer to the payee Host designates in writing. Host may request supporting sales reports up to twice per year. No Commission is payable for any period before Host has provided its payout details and a completed IRS Form W-9 to Operator.</p>
   <p><b>Trial Period and Monthly Minimum.</b> The first ninety (90) days after the Installation Date are a trial period (the "Trial Period"). No Commission is earned or payable on sales made during the Trial Period. After the Trial Period, Commission is earned for a calendar month only if gross sales from the Equipment in that month are at least one thousand dollars ($1,000) (the "Monthly Minimum"). No Commission is earned for any month in which gross sales are below the Monthly Minimum, and sales do not carry forward between months. For the month in which the Trial Period ends, only sales after the Trial Period count, and the Monthly Minimum is prorated by the days remaining in that month.</p>
 
   <h2>4. Term and Renewal</h2>
@@ -153,7 +165,7 @@
       <div class="line" style="height:20px"></div><div class="lbl">Paige Fryer, Owner</div>
       <div class="line" style="height:20px"></div><div class="lbl">Date</div>
     </div>
-    <div class="col"><b>Host · American House Brentwood</b>
+    <div class="col"><b>Host${h.company?' · '+esc(h.company):''}</b>
       <div class="line"></div><div class="lbl">Signature</div>
       <div class="line" style="height:20px"></div><div class="lbl">Printed name and title</div>
       <div class="line" style="height:20px"></div><div class="lbl">Date</div>
@@ -166,3 +178,5 @@
 </div>
 </body>
 </html>
+`;
+for(const h of HOSTS){const f=path.join(OUT,`wrapt-placement-agreement${h.slug==='template'?'':'-'+h.slug}.html`);fs.writeFileSync(f,page(h));console.log('wrote',f);}

@@ -5,75 +5,72 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wrapt Payout Setup</title>
 <meta name="description" content="Tell Wrapt where to send your monthly commission and statement.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=Inter:wght@400;600&family=Space+Mono:wght@400;700&display=swap">
 <style>
-  /* Layout: a sticky tool bar above a one-page form styled like the agreement. */
-  :root{
-    --ink:#14212b; --ink-soft:#4c5a66; --line:#c9d3da; --paper:#ffffff; --wash:#eef3f6;
-    --brand:#0b6e7a; --brand-deep:#08525b; --brand-soft:#d9eff1; --accent:#f0a83a;
-    --field:#fbfdff; --field-focus:#e6f6f8; --ok:#1f7a4d;
-    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-    --serif:Georgia,"Times New Roman",serif;
-  }
+  :root{--char:#2B2B28;--bone:#F3F1EC;--white:#FFFFFF;--stone:#D7D2C7;--taupe:#A39C8F;--graph:#55534E;--err:#A33B3B;
+    --arch:'Archivo',Impact,'Arial Black',sans-serif;--inter:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;--mono:'Space Mono',Menlo,Consolas,monospace;
+    --ink:#2B2B28;--ink-soft:#55534E;--line:#D7D2C7;--paper:#FFFFFF;--wash:#F3F1EC;--brand:#2B2B28;--brand-deep:#2B2B28;--brand-soft:#F3F1EC;--accent:#F3F1EC;--field:#FFFFFF;--field-focus:#F3F1EC;--ok:#55534E;--warn:#A33B3B;--sans:var(--inter);--serif:var(--inter)}
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--wash);color:var(--ink);font-family:var(--serif);font-size:10.6pt;line-height:1.4}
+  html,body{background:var(--bone);color:var(--char);font-family:var(--inter);font-size:10.4pt;line-height:1.5}
   body{padding-bottom:40px}
-
-  .bar{position:sticky;top:0;z-index:20;background:var(--brand-deep);color:#fff;font-family:var(--sans);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.15)}
-  .bar .t{font-weight:800;font-size:15px;margin-right:4px}
-  .chip{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.16)}
-  .chip.sent{background:var(--accent);color:#14212b}
-  .chip.submitted{background:#2fbf7f;color:#062}
-  .bar .sp{flex:1}
-  .bar button{font:600 13px var(--sans);color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:7px;padding:8px 12px;cursor:pointer}
-  .bar button:hover{background:rgba(255,255,255,.24)}
-  .bar button.primary{background:var(--accent);color:#14212b;border-color:transparent}
-  .bar button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .saved{font-size:12px;opacity:.85}
-
-  .banner{max-width:8.5in;margin:16px auto 0;background:#fff8ec;border:1px solid #f1d9a6;border-left:4px solid var(--accent);border-radius:8px;padding:12px 16px;font-family:var(--sans);font-size:13.5px;line-height:1.45}
-  .banner b{display:block;margin-bottom:3px}
-  .banner ol{margin:4px 0 0 18px}
-  .banner code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:rgba(0,0,0,.05);padding:1px 5px;border-radius:4px}
-
-  .doc{max-width:8.5in;margin:16px auto 24px;background:var(--paper);box-shadow:0 6px 24px rgba(20,33,43,.10)}
+  .k{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+  .wm{display:inline-block;border:3px solid currentColor;padding:8px 12px 6px;font-family:var(--arch);font-weight:900;font-size:16px;letter-spacing:-.02em;line-height:1;text-transform:uppercase}
+  :focus-visible{outline:2px solid var(--char);outline-offset:2px}
+  .doc{max-width:8.5in;margin:16px auto 24px;background:var(--white);border:2px solid var(--char)}
   .pg{padding:0.6in 0.7in 0.55in;min-height:11in;position:relative}
-  .top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--brand-deep);padding-bottom:8px;margin-bottom:14px;font-family:var(--sans)}
-  .logo{font-size:22px;font-weight:800;color:var(--brand-deep);line-height:1}
-  .logo small{display:block;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin-top:4px}
-  .top .r{text-align:right;font-size:9.5px;color:var(--ink-soft);line-height:1.5}
-  h1{font-family:var(--sans);font-size:17px;font-weight:800;margin-bottom:4px}
-  .lead{color:var(--ink-soft);margin-bottom:12px}
-  h2{font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-deep);margin:14px 0 6px;display:flex;align-items:center;gap:8px}
-  h2 .n{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--brand);color:#fff;font-size:11px}
+  .pg+.pg{border-top:1px dashed var(--taupe)}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--char);padding-bottom:12px;margin-bottom:14px}
+  .brand small{display:block;margin-top:8px;color:var(--taupe)}
+  .top .r{text-align:right;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--graph);line-height:1.6}
+  .top .r b{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--char);margin-bottom:2px}
+  h1{font-family:var(--arch);font-weight:900;font-size:20px;letter-spacing:-.02em;text-transform:uppercase;margin-bottom:8px;line-height:1.1}
+  h2{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--char);margin:12px 0 4px;padding-bottom:3px;border-bottom:1px solid var(--stone)}
+  p{margin-bottom:6px}
+  .foot{position:absolute;left:0.7in;right:0.7in;bottom:0.3in;display:flex;justify-content:space-between;font-family:var(--mono);font-size:8pt;letter-spacing:.08em;color:var(--taupe);border-top:1px solid var(--stone);padding-top:4px}
+  .bar{position:sticky;top:0;z-index:20;background:var(--char);color:var(--bone);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .bar .t{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+  .chip{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;padding:5px 9px;border:1px solid var(--taupe);color:var(--bone)}
+  .chip.sent,.chip.submitted{background:var(--bone);color:var(--char);border-color:var(--bone)}
+  .bar .sp{flex:1}
+  .bar button{font:600 12.5px var(--inter);color:var(--bone);background:transparent;border:1px solid var(--taupe);padding:8px 12px;cursor:pointer}
+  .bar button:hover{border-color:var(--bone)}
+  .bar button.primary{background:var(--bone);color:var(--char);border-color:var(--bone)}
+  .saved{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--taupe)}
+  .banner{max-width:8.5in;margin:16px auto 0;background:var(--white);border:2px solid var(--char);padding:12px 16px;font-size:13.5px;line-height:1.45}
+  .banner b{display:block;margin-bottom:3px;font-weight:600}
+  .banner ol{margin:4px 0 0 18px}
+  .banner code{font-family:var(--mono);font-size:11.5px;background:var(--bone);padding:1px 5px}
+  .mailbox{margin-top:10px;background:var(--bone);border:1px solid var(--stone);padding:10px 12px;font-size:13px}
+  .mailbox b{display:block;margin-bottom:4px}
+  .mailbox pre{white-space:pre-wrap;font:12.5px/1.45 var(--inter);background:var(--white);padding:8px 10px;border:1px solid var(--stone);margin:6px 0;max-height:220px;overflow:auto}
+  .mailbox button{font:600 12px var(--inter);padding:6px 10px;border:1px solid var(--char);background:var(--white);color:var(--char);cursor:pointer;margin-right:6px}
+  .lead{color:var(--graph);margin-bottom:12px}
+  h2{display:flex;align-items:center;gap:8px;margin:16px 0 8px}
+  h2 .n{color:var(--taupe)}
+  h2 .n::after{content:" ·"}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px}
   .row{display:flex;flex-direction:column;gap:2px;min-width:0}
   .row.wide{grid-column:1/-1}
-  label.l{font-family:var(--sans);font-size:8.5pt;color:var(--ink-soft);letter-spacing:.02em}
-  .f{font:inherit;color:var(--ink);background:var(--field);border:0;border-bottom:1px solid var(--ink);border-radius:2px 2px 0 0;padding:2px 4px;width:100%;line-height:1.3}
-  .f:focus{background:var(--field-focus);border-bottom-color:var(--brand)}
-  .f:read-only,.f:disabled{background:transparent;color:var(--ink);opacity:1}
-  .f::placeholder{color:#9aa8b3;font-style:italic}
+  label.l{font-family:var(--mono);font-size:8pt;letter-spacing:.08em;text-transform:uppercase;color:var(--graph)}
+  .f{font:inherit;color:var(--char);background:var(--white);border:0;border-bottom:1px solid var(--char);padding:2px 4px;width:100%;line-height:1.3}
+  .f:focus{background:var(--bone);outline:none;border-bottom:2px solid var(--char)}
+  .f:read-only,.f:disabled{background:transparent;color:var(--char);opacity:1}
+  .f::placeholder{color:var(--taupe);font-style:italic}
   select.f{appearance:none;-webkit-appearance:none}
-  textarea.f{border:1px solid var(--line);border-radius:4px;min-height:52px;resize:vertical;padding:6px 8px}
-  .choice{display:flex;gap:18px;flex-wrap:wrap;margin:4px 0 6px;font-family:var(--sans);font-size:10pt}
+  textarea.f{border:1px solid var(--stone);min-height:52px;resize:vertical;padding:6px 8px}
+  .choice{display:flex;gap:18px;flex-wrap:wrap;margin:4px 0 6px;font-size:10pt}
   .choice label{display:flex;align-items:center;gap:6px;cursor:pointer}
-  .choice input{width:15px;height:15px;accent-color:var(--brand)}
-  .sub{border-left:3px solid var(--brand-soft);padding:6px 0 2px 12px;margin:4px 0 6px}
+  .choice input{width:15px;height:15px;accent-color:var(--char)}
+  .sub{border-left:2px solid var(--char);padding:6px 0 2px 12px;margin:4px 0 6px}
   .sub[hidden]{display:none}
-  .info{background:var(--wash);border-left:3px solid var(--brand);padding:8px 12px;margin:6px 0 4px;font-size:10.2pt}
-  .info b{color:var(--brand-deep)}
-  .info a{color:var(--brand)}
-  .warn{font-family:var(--sans);font-size:9.5pt;color:#8a1c1c;margin-top:4px}
+  .info{background:var(--bone);border:1px solid var(--stone);padding:8px 12px;margin:6px 0 4px;font-size:10.2pt}
+  .info b{font-weight:600}
+  .info a{color:var(--char)}
+  .warn{font-family:var(--mono);font-size:8.5pt;letter-spacing:.04em;color:var(--err);margin-top:4px}
   .sig{display:grid;grid-template-columns:2fr 1fr 1fr;gap:18px;margin-top:8px}
-  .foot{position:absolute;left:0.7in;right:0.7in;bottom:0.3in;display:flex;justify-content:space-between;font-size:8pt;color:var(--ink-soft);font-family:var(--sans);border-top:1px solid var(--line);padding-top:4px}
-  .note{font-family:var(--sans);font-size:12.5px;color:var(--ink-soft);max-width:8.5in;margin:0 auto;padding:0 8px}
+  .note{font-size:12.5px;color:var(--graph);max-width:8.5in;margin:0 auto;padding:0 8px}
   .locked .f{pointer-events:none}
   .locked .choice input{pointer-events:none}
-
-  .mailbox{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:var(--sans);font-size:13px}
-  .mailbox b{display:block;margin-bottom:4px}
-  .mailbox pre{white-space:pre-wrap;font:12.5px/1.45 var(--sans);background:var(--wash);padding:8px 10px;border-radius:6px;margin:6px 0;max-height:220px;overflow:auto}
-  .mailbox button{font:600 12px var(--sans);padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;margin-right:6px}
   @media (max-width:760px){
     .pg{padding:20px 16px 56px;min-height:0}
     .grid,.sig{grid-template-columns:1fr}
@@ -81,16 +78,20 @@
     .banner{margin:12px 12px 0}.doc{margin:12px 12px 20px}
   }
   @media print{
-    html,body{background:#fff;padding:0;font-size:10.5pt;line-height:1.4}
+    html,body{background:#fff;padding:0;font-size:10pt;line-height:1.34}
     .bar,.banner,.note,.mailbox,.foot{display:none !important}
-    .doc{max-width:none;margin:0;box-shadow:none}
+    .doc{max-width:none;margin:0;border:0}
     .pg{min-height:0;height:auto;padding:0;overflow:visible}
-    h2{break-after:avoid;page-break-after:avoid}
+    .top{margin-bottom:10px;padding-bottom:8px}
+    h1{font-size:18px;margin-bottom:4px}.lead{margin-bottom:8px}
+    h2{break-after:avoid;page-break-after:avoid;margin:10px 0 5px}
+    .grid{gap:5px 16px}.info{padding:6px 10px;margin:4px 0 3px}.sub{margin:2px 0 4px;padding:4px 0 2px 12px}
+    textarea.f{min-height:40px}.sig{margin-top:6px}.choice{margin:2px 0 4px}
     .grid,.sub,.info,.choice,.sig{break-inside:avoid;page-break-inside:avoid}
     .f{background:transparent !important}
     .f::placeholder{color:transparent}
     .info,.sub{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    @page{size:Letter;margin:0.75in 0.8in}
+    @page{size:Letter;margin:0.7in 0.75in}
   }
 </style>
 </head>
@@ -116,8 +117,8 @@
 <div class="doc" id="doc">
 <div class="pg">
   <div class="top">
-    <div class="logo"><span data-show="opName">Wrapt</span><small>Smart cooler placement</small></div>
-    <div class="r"><span data-show="opName">Wrapt</span> · <span data-show="opAddress">Franklin, Tennessee</span><br><span data-show="opPhone">615.948.2976</span> · <span data-show="opWeb">wraptvending.com</span></div>
+    <div class="brand"><span class="wm"><span data-show="opName">Wrapt</span></span><small class="k">Smart coolers · placed free</small></div>
+    <div class="r"><b>Payout Setup</b><span data-show="opLegal">Wrapt Intelligence LLC</span> · <span data-show="opAddress">Franklin, Tennessee</span><br><span data-show="opPhone">615.948.2976</span> · <span data-show="opEmail">paige@wraptvending.com</span></div>
   </div>
 
   <h1>Commission Payout Setup</h1>
@@ -130,7 +131,7 @@
     <div class="row"><label class="l" for="opEmail">Return this form to (<span data-show="opName">Wrapt</span> email)</label><input class="f" id="opEmail" type="email" data-k="opEmail" placeholder="Wrapt email for the completed form"></div>
   </div>
 
-  <h2><span class="n">1</span> Who gets paid</h2>
+  <h2><span class="n">01</span> Who gets paid</h2>
   <div class="grid">
     <div class="row"><label class="l" for="payeeName">Payee legal name (as it appears on the bank account)</label><input class="f" id="payeeName" data-k="payeeName" placeholder="Legal name of business or person"></div>
     <div class="row"><label class="l" for="payeeDba">Doing business as (optional)</label><input class="f" id="payeeDba" data-k="payeeDba" placeholder="trade name, if different"></div>
@@ -140,7 +141,7 @@
     <label><input type="radio" name="payeeType" value="individual" data-r="payeeType"> Me personally (sole proprietor or individual)</label>
   </div>
 
-  <h2><span class="n">2</span> How you want to be paid</h2>
+  <h2><span class="n">02</span> How you want to be paid</h2>
   <div class="choice" role="radiogroup" aria-label="Payment method">
     <label><input type="radio" name="method" value="deposit" data-r="method"> Direct deposit (recommended, fastest)</label>
     <label><input type="radio" name="method" value="check" data-r="method"> Paper check by mail</label>
@@ -163,17 +164,17 @@
     </div>
   </div>
 
-  <h2><span class="n">3</span> Who gets the monthly statement</h2>
+  <h2><span class="n">03</span> Who gets the monthly statement</h2>
   <div class="grid">
     <div class="row"><label class="l" for="stmtName">Name</label><input class="f" id="stmtName" data-k="stmtName" placeholder="owner, manager or bookkeeper"></div>
     <div class="row"><label class="l" for="stmtEmail">Email</label><input class="f" id="stmtEmail" type="email" data-k="stmtEmail" placeholder="email for statements"></div>
     <div class="row"><label class="l" for="stmtPhone">Phone (optional)</label><input class="f" id="stmtPhone" data-k="stmtPhone" placeholder="phone"></div>
   </div>
 
-  <h2><span class="n">4</span> Anything else we should know</h2>
+  <h2><span class="n">04</span> Anything else we should know</h2>
   <textarea class="f" data-k="notes" aria-label="Notes" placeholder="Optional. For example: pay to the management company, not the location; or the bookkeeper changes in November."></textarea>
 
-  <h2><span class="n">5</span> Submitted by</h2>
+  <h2><span class="n">05</span> Submitted by</h2>
   <div class="sig">
     <div class="row"><label class="l" for="subName">Name</label><input class="f" id="subName" data-k="subName" placeholder="your name"></div>
     <div class="row"><label class="l" for="subTitle">Title</label><input class="f" id="subTitle" data-k="subTitle" placeholder="title"></div>

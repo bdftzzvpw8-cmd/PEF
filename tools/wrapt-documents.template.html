@@ -5,84 +5,86 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WraptCloser</title>
 <meta name="description" content="Create custom proposals, agreements and payout forms for Wrapt prospects from one file.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=Inter:wght@400;600&family=Space+Mono:wght@400;700&display=swap">
 <style>
-  /* Layout: prospect list on the left, prospect form and document tabs on the right, live preview below the form. */
-  :root{
-    --ink:#14212b; --ink-soft:#4c5a66; --line:#d5dee5; --paper:#ffffff; --wash:#eef3f6; --wash-2:#e2eaef;
-    --brand:#0b6e7a; --brand-deep:#08525b; --brand-soft:#d9eff1; --accent:#f0a83a; --ok:#1f7a4d; --danger:#9a2a2a;
-    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-  }
+  /* Layout: prospect list on the left, prospect form and document tabs on the right, live preview below the form. Brand: Gallery Neutral. */
+  :root{--char:#2B2B28;--bone:#F3F1EC;--white:#FFFFFF;--stone:#D7D2C7;--taupe:#A39C8F;--graph:#55534E;--err:#A33B3B;
+    --arch:'Archivo',Impact,'Arial Black',sans-serif;--inter:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;--mono:'Space Mono',Menlo,Consolas,monospace}
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
-  body{background:var(--wash);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45}
+  body{background:var(--bone);color:var(--char);font-family:var(--inter);font-size:14px;line-height:1.5}
   button{font:inherit;cursor:pointer}
-  input,select,textarea{font:inherit;color:var(--ink)}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  input,select,textarea{font:inherit;color:var(--char)}
+  :focus-visible{outline:2px solid var(--char);outline-offset:2px}
+  .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase}
+  .wm{display:inline-block;border:3px solid currentColor;padding:7px 11px 5px;font-family:var(--arch);font-weight:900;font-size:14px;letter-spacing:-.02em;line-height:1;text-transform:uppercase}
 
-  .bar{position:sticky;top:0;z-index:20;background:var(--brand-deep);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.15)}
-  .bar .t{font-weight:800;font-size:15px}
-  .bar .t small{font-weight:500;opacity:.75;margin-left:8px}
+  .bar{position:sticky;top:0;z-index:20;background:var(--char);color:var(--bone);padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .bar .t{display:flex;align-items:center;gap:12px}
+  .bar .t small{color:var(--taupe)}
   .bar .sp{flex:1}
-  .bar button{color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:7px;padding:7px 11px;font-weight:600;font-size:13px}
-  .bar button:hover{background:rgba(255,255,255,.24)}
-  .saved{font-size:12px;opacity:.85}
+  .bar button{color:var(--bone);background:transparent;border:1px solid var(--taupe);padding:7px 11px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+  .bar button:hover{border-color:var(--bone)}
+  .saved{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--taupe)}
 
   .app{display:grid;grid-template-columns:260px 1fr;gap:0;min-height:calc(100% - 52px)}
-  aside{background:var(--paper);border-right:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px}
-  aside h2,main h2{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--brand-deep)}
-  .plist{list-style:none;display:flex;flex-direction:column;gap:4px;overflow:auto;max-height:50vh}
-  .plist li button{width:100%;text-align:left;background:transparent;border:1px solid transparent;border-radius:8px;padding:8px 10px;color:var(--ink)}
-  .plist li button:hover{background:var(--wash)}
-  .plist li button.on{background:var(--brand-soft);border-color:var(--brand)}
-  .plist li button b{display:block;font-size:13.5px}
-  .plist li button span{font-size:12px;color:var(--ink-soft)}
-  .plist .empty{font-size:13px;color:var(--ink-soft);padding:8px 10px}
-  .btn{background:var(--brand);color:#fff;border:1px solid var(--brand);border-radius:8px;padding:9px 12px;font-weight:600;font-size:13px}
-  .btn:hover{background:var(--brand-deep)}
-  .btn.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
-  .btn.ghost:hover{background:var(--wash)}
-  .btn.warn{background:#fff;color:var(--danger);border-color:var(--line)}
-  .btn.accent{background:var(--accent);color:#14212b;border-color:var(--accent)}
-  .btn.accent:hover{background:#f5b955}
+  aside{background:var(--white);border-right:2px solid var(--char);padding:14px;display:flex;flex-direction:column;gap:10px}
+  aside h2,main h2{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--char)}
+  .plist{list-style:none;display:flex;flex-direction:column;gap:2px;overflow:auto;max-height:50vh}
+  .plist li button{width:100%;text-align:left;background:transparent;border:1px solid transparent;padding:8px 10px;color:var(--char)}
+  .plist li button:hover{border-color:var(--stone)}
+  .plist li button.on{background:var(--char);color:var(--bone);border-color:var(--char)}
+  .plist li button b{display:block;font-size:13.5px;font-weight:600}
+  .plist li button span{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--graph)}
+  .plist li button.on span{color:var(--taupe)}
+  .plist .empty{font-size:13px;color:var(--graph);padding:8px 10px}
+  .btn{background:var(--char);color:var(--bone);border:1px solid var(--char);padding:9px 12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+  .btn:hover{background:#1e1e1b}
+  .btn.ghost{background:var(--white);color:var(--char);border-color:var(--char)}
+  .btn.ghost:hover{background:var(--bone)}
+  .btn.warn{background:var(--white);color:var(--err);border-color:var(--stone)}
+  .btn.accent{background:var(--char);color:var(--bone);border-color:var(--char)}
   .btn:disabled{opacity:.45;cursor:not-allowed}
   .side-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto}
   .side-actions .row{display:flex;gap:6px}
   .side-actions .row .btn{flex:1}
 
   main{padding:16px 20px 40px;min-width:0}
-  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px}
-  .card h2{margin-bottom:10px}
+  .card{background:var(--white);border:2px solid var(--char);padding:16px 18px;margin-bottom:14px}
+  .card h2{margin-bottom:12px;display:flex;align-items:center;gap:12px}
+  .card h2::after{content:"";flex:1;height:1px;background:var(--stone)}
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 14px}
   .f{display:flex;flex-direction:column;gap:3px;min-width:0}
   .f.w2{grid-column:span 2}.f.w4{grid-column:span 4}
-  .f label{font-size:11.5px;color:var(--ink-soft);letter-spacing:.02em}
-  .f input,.f select,.f textarea{border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:#fff;width:100%}
-  .f input:focus,.f select:focus,.f textarea:focus{border-color:var(--brand)}
+  .f label{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--graph)}
+  .f input,.f select,.f textarea{border:1px solid var(--stone);padding:7px 9px;background:var(--white);width:100%}
+  .f input:focus,.f select:focus,.f textarea:focus{border-color:var(--char);outline:none}
+  .f select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--char) 50%),linear-gradient(135deg,var(--char) 50%,transparent 50%);background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:28px}
   .f textarea{min-height:58px;resize:vertical}
-  .f .hint{font-size:11px;color:var(--ink-soft)}
+  .f .hint,.hint{font-family:var(--inter);font-size:11.5px;color:var(--graph);text-transform:none;letter-spacing:0;font-weight:400}
   .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
-  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px}
-  .tabs button{background:transparent;border:0;border-bottom:3px solid transparent;padding:10px 14px;font-weight:600;color:var(--ink-soft);margin-bottom:-1px}
-  .tabs button.on{color:var(--brand-deep);border-bottom-color:var(--brand)}
+  .tabs{display:flex;gap:4px;border-bottom:2px solid var(--char);margin-bottom:14px}
+  .tabs button{background:transparent;border:0;border-bottom:3px solid transparent;padding:10px 14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--graph);margin-bottom:-2px}
+  .tabs button.on{color:var(--char);border-bottom-color:var(--char)}
   .pane[hidden]{display:none}
   .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 10px}
-  .actions .note{font-size:12px;color:var(--ink-soft)}
-  .preview{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
-  .preview iframe{display:block;width:100%;height:900px;border:0;background:#fff}
-  .ptitle{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--wash-2);font-size:12px;color:var(--ink-soft)}
-  .msg{font-size:13px;padding:10px 12px;border-radius:8px;background:#fff8ec;border:1px solid #f1d9a6;margin-bottom:10px}
-  .msg.ok{background:#eaf7ef;border-color:#bfe3cc;color:var(--ok)}
+  .actions .note{font-size:12px;color:var(--graph)}
+  .preview{border:2px solid var(--char);overflow:hidden;background:var(--white)}
+  .preview iframe{display:block;width:100%;height:900px;border:0;background:var(--white)}
+  .ptitle{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bone);border-bottom:1px solid var(--stone);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--graph)}
+  .msg{font-size:13px;padding:10px 12px;background:var(--bone);border:1px solid var(--stone);border-left:3px solid var(--char);margin-bottom:10px}
+  .msg.ok{color:var(--char)}
   .msg[hidden]{display:none}
-  .mailbox pre{white-space:pre-wrap;font:13px/1.5 var(--sans);background:var(--wash);padding:10px 12px;border-radius:8px;margin:6px 0 10px;max-height:260px;overflow:auto}
+  .mailbox pre{white-space:pre-wrap;font:13px/1.5 var(--inter);background:var(--bone);padding:10px 12px;border:1px solid var(--stone);margin:6px 0 10px;max-height:260px;overflow:auto}
   .mailbox[hidden]{display:none}
   #settingsCard[hidden]{display:none}
-  .empty-main{padding:40px 20px;text-align:center;color:var(--ink-soft)}
-  .empty-main b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+  .empty-main{padding:40px 20px;text-align:center;color:var(--graph)}
+  .empty-main b{display:block;color:var(--char);font-family:var(--arch);font-weight:700;font-size:16px;margin-bottom:6px}
 
   @media (max-width:900px){
     .app{grid-template-columns:1fr}
-    aside{border-right:0;border-bottom:1px solid var(--line)}
+    aside{border-right:0;border-bottom:2px solid var(--char)}
     .plist{max-height:200px}
     .grid{grid-template-columns:repeat(2,1fr)}
     .f.w4{grid-column:span 2}
@@ -94,7 +96,7 @@
 <body>
 
 <div class="bar">
-  <span class="t">WraptCloser<small>proposals · agreements · payout forms</small></span>
+  <span class="t"><span class="wm">Wrapt</span><small class="k">Closer · proposals · agreements · payout</small></span>
   <span class="sp"></span>
   <span class="saved" id="saved"></span>
   <button type="button" id="btnSettings">Your business</button>
@@ -229,6 +231,7 @@
   </main>
 </div>
 
+<script>__PROPOSAL_TPL_JS__</script>
 <script id="tpl-agreement" type="application/json">__AGREEMENT_TPL__</script>
 <script id="tpl-payout" type="application/json">__PAYOUT_TPL__</script>
 
@@ -243,21 +246,8 @@
   var fmtDate=function(iso){if(!iso)return '';var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);if(!m)return iso;return ['January','February','March','April','May','June','July','August','September','October','November','December'][+m[2]-1]+' '+(+m[3])+', '+m[1];};
   var firstName=function(s){return (s||'').trim().split(/\s+/)[0]||'there';};
 
-  /* ---------- venue defaults ---------- */
-  var VENUES={
-    'Gym & fitness':{who:'members',lead:'Members grab a protein shake, electrolyte drink or cold water on the way out. They tap a card, take what they want and walk off. No front-desk time, no cash, no coins.',mix:'Protein shakes, electrolyte and recovery drinks, cold water, energy drinks and grab-and-go protein snacks. Tell us what your members ask for and we stock it.',spot:'A spot near the exit or front desk with a standard wall outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'},
-    'Hotel':{who:'guests',lead:'Guests grab drinks and snacks at any hour. They tap a card, take what they want and it checks out on its own. It reads as your amenity, and the front desk never has to touch it.',mix:'Cold drinks, sparkling water, coffee drinks, snacks and late-night essentials. Travelers buy what they forgot to pack.',spot:'A spot in the lobby or near the elevators with a standard wall outlet.',approval:'The agreement is three pages. If the owner or management company needs to sign off, I am glad to send it to them directly.'},
-    'Apartment community':{who:'residents',lead:'A 24/7 resident amenity for the lobby, clubroom or mail room. Residents tap a card, take a drink or snack, and it checks out on its own. Your team never handles money or restocking.',mix:'Cold drinks, sparkling water, coffee drinks, snacks and a few household basics residents run out of.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is three pages. If the management company needs to approve a vendor, tell me who to send it to and I will take that off your plate.'},
-    'Senior living':{who:'residents, families and staff',lead:'A 24/7 resident amenity for the lobby or clubroom. Residents, families and staff tap a card, take a drink or snack, and it checks out on its own. Your team never handles money or restocking.',mix:'Waters, juices, coffee drinks, and snacks residents and visiting families like. We choose the mix with you and adjust it as we see what sells.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is three pages. If corporate or your regional office needs to approve a vendor, tell me who to send it to and I will take that off your plate.'},
-    'Office / coworking':{who:'employees and tenants',lead:'Employees and tenants get cold drinks and snacks without leaving the building. They tap a card, take what they want and it checks out on its own. Nothing for your team to manage.',mix:'Cold drinks, sparkling water, coffee and energy drinks, and snacks for the afternoon slump.',spot:'A spot in the break room or lobby with a standard wall outlet.',approval:'The agreement is three pages. If facilities or the building owner needs to sign off, I am glad to send it to them directly.'},
-    'Dealership / auto repair':{who:'customers',lead:'Customers waiting on you can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the wait better and costs you nothing.',mix:'Cold drinks, coffee drinks, water and snacks for people waiting on a car.',spot:'A spot in the waiting area with a standard wall outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'},
-    'Laundromat':{who:'customers',lead:'Customers waiting on a load can grab a cold drink or snack themselves. They tap a card, take what they want and it checks out on its own. No change machine, no cash, nothing for you to handle.',mix:'Cold drinks, water, snacks and a few laundry basics people forget to bring.',spot:'A spot along a wall near the seating with a standard outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'},
-    'Medical / clinic / vet':{who:'patients and visitors',lead:'Patients and visitors waiting on you can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the wait better and costs you nothing.',mix:'Water, juices, coffee drinks and light snacks suited to a waiting room.',spot:'A spot in the waiting area with a standard wall outlet.',approval:'The agreement is three pages. If the practice owner or administrator needs to sign, I am glad to send it to them directly.'},
-    'Salon / beauty / tattoo':{who:'clients',lead:'Clients in the chair or waiting can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the visit nicer and costs you nothing.',mix:'Sparkling water, cold drinks, coffee drinks and light snacks.',spot:'A spot near the waiting area with a standard wall outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'},
-    'Church / school / youth':{who:'visitors and families',lead:'Visitors and families can grab a drink or snack anytime. They tap a card, take what they want and it checks out on its own. No staff time, no cash handling.',mix:'Water, juices, cold drinks and family-friendly snacks.',spot:'A spot in a lobby or common area with a standard wall outlet.',approval:'The agreement is three pages. If a board or administrator needs to approve it, tell me who to send it to.'},
-    'Entertainment / golf':{who:'guests',lead:'Guests can grab a cold drink or snack between rounds or events. They tap a card, take what they want and it checks out on its own. No staff time, no cash handling.',mix:'Cold drinks, sports drinks, water and grab-and-go snacks.',spot:'A spot near the entrance or turn with a standard wall outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'},
-    'Other':{who:'customers and staff',lead:'Customers and staff can grab a cold drink or snack anytime. They tap a card, take what they want and it checks out on its own.',mix:'Cold drinks, water, coffee drinks and snacks, chosen with you and adjusted as we see what sells.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'}
-  };
+  /* ---------- venue defaults come from the embedded proposal template ---------- */
+  var T=window.WraptProposal,VENUES=T.VENUES;
 
   /* ---------- state ---------- */
   var LS='wrapt-documents';
@@ -276,56 +266,7 @@
   function shortOf(p){return (p.short||p.company||'your location').trim();}
   function capFirst(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 
-  function proposalHTML(p){
-    var co=p.company||'your location',short=shortOf(p),fee=SET.installFee||'200';
-    return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>'+esc(SET.opName)+' Proposal for '+esc(co)+'</title>\n<style>\n'+
-'  :root{--ink:#14212b;--ink-soft:#4c5a66;--line:#dfe5ea;--paper:#ffffff;--wash:#f3f7f9;--brand:#0b6e7a;--brand-deep:#08525b;--brand-soft:#d9eff1;--accent:#f0a83a;}\n'+
-'  *{box-sizing:border-box;margin:0;padding:0}\n  html,body{background:var(--wash);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}\n'+
-'  .sheet{max-width:820px;margin:32px auto;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(20,33,43,.08)}\n'+
-'  header{background:var(--brand-deep);color:#fff;padding:36px 48px 30px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}\n'+
-'  .logo{font-size:30px;font-weight:800;letter-spacing:.02em;line-height:1}\n  .logo small{display:block;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;opacity:.75;margin-top:8px}\n'+
-'  .meta{text-align:right;font-size:13px;opacity:.9}\n  .meta b{display:block;font-size:15px;font-weight:600;opacity:1}\n'+
-'  .hero{padding:36px 48px 8px}\n  .eyebrow{color:var(--brand);font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}\n'+
-'  h1{font-size:30px;line-height:1.15;font-weight:800;margin:8px 0 14px}\n  .hero p{font-size:17px;color:var(--ink-soft);max-width:60ch}\n'+
-'  section{padding:26px 48px;border-top:1px solid var(--line)}\n  h2{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);margin-bottom:14px}\n'+
-'  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}\n  .step{background:var(--wash);border-radius:10px;padding:18px 18px 16px}\n'+
-'  .step .n{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;margin-bottom:10px}\n'+
-'  .step h3{font-size:16px;margin-bottom:4px}\n  .step p{font-size:14px;color:var(--ink-soft)}\n'+
-'  .split{display:grid;grid-template-columns:1.1fr .9fr;gap:32px}\n  ul{list-style:none}\n  li{position:relative;padding-left:26px;margin-bottom:10px;font-size:15px}\n'+
-'  li::before{content:"";position:absolute;left:0;top:7px;width:14px;height:14px;border-radius:50%;background:var(--brand-soft);border:2px solid var(--brand)}\n'+
-'  .big{display:flex;flex-direction:column;gap:4px;background:var(--brand-soft);border-radius:10px;padding:16px 20px;margin-top:6px}\n'+
-'  .big .pct{font-size:22px;font-weight:800;color:var(--brand-deep);line-height:1.2}\n  .big span{font-size:14px;color:var(--ink-soft)}\n'+
-'  .note{background:#fff8ec;border-left:4px solid var(--accent);padding:14px 18px;border-radius:0 8px 8px 0;font-size:15px}\n'+
-'  .cta{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;background:var(--brand-deep);color:#fff;padding:28px 48px}\n'+
-'  .cta h2{color:#fff;opacity:.8;margin-bottom:6px}\n  .cta p{font-size:17px;max-width:48ch}\n'+
-'  .cta a.btn{display:inline-block;background:var(--accent);color:var(--ink);font-weight:700;text-decoration:none;padding:14px 22px;border-radius:8px;white-space:nowrap}\n'+
-'  footer{padding:22px 48px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:14px;color:var(--ink-soft)}\n  footer b{color:var(--ink)}\n  footer a{color:var(--brand);text-decoration:none}\n'+
-'  @media (max-width:640px){header,.hero,section,.cta,footer{padding-left:20px;padding-right:20px}.sheet{margin:0;border-radius:0;border:0}.steps,.split{grid-template-columns:1fr}.meta{text-align:left}h1{font-size:26px}}\n'+
-'  @media print{html,body{background:#fff}.sheet{margin:0;max-width:none;border:0;border-radius:0;box-shadow:none}header,.cta,.step,.big,.note{-webkit-print-color-adjust:exact;print-color-adjust:exact}section,.cta,footer{break-inside:avoid}header{padding:22px 32px 18px}.hero{padding:20px 32px 4px}section{padding:14px 32px}.cta{padding:18px 32px}footer{padding:12px 32px}h1{font-size:24px;margin:6px 0 10px}.hero p{font-size:15px}.step{padding:12px 14px 10px}li{margin-bottom:6px;font-size:14px}h2{margin-bottom:8px}.split{gap:24px}@page{size:Letter;margin:0.5in 0.6in}}\n'+
-'</style>\n</head>\n<body>\n<div class="sheet">\n'+
-'  <header>\n    <div class="logo">'+esc(SET.opName)+'<small>Smart cooler placement</small></div>\n    <div class="meta"><b>Prepared for '+esc(co)+'</b>'+esc(p.venue)+' · '+esc(fmtDate(p.pdate||today()))+'</div>\n  </header>\n'+
-'  <div class="hero">\n    <div class="eyebrow">Proposal</div>\n    <h1>A free AI smart cooler for '+esc(co)+'</h1>\n    <p>'+esc(p.lead)+'</p>\n  </div>\n'+
-'  <section>\n    <h2>How it works</h2>\n    <div class="steps">\n'+
-'      <div class="step"><div class="n">1</div><h3>We install it</h3><p>We deliver and set up the cooler at no cost. You choose the spot, we handle the rest.</p></div>\n'+
-'      <div class="step"><div class="n">2</div><h3>We stock and service it</h3><p>Every week. Your team never restocks, never handles cash, never fields a refund.</p></div>\n'+
-'      <div class="step"><div class="n">3</div><h3>You earn on every sale</h3><p>'+esc(capFirst(short))+' earns a share of every sale after a 90-day trial, paid monthly with a statement.</p></div>\n'+
-'    </div>\n  </section>\n'+
-'  <section>\n    <div class="split">\n      <div>\n        <h2>What '+esc(short)+' gets</h2>\n        <ul>\n'+
-'          <li>The cooler, installed by us, at no cost.</li>\n'+
-'          <li>Weekly stocking and service. Nothing for your team to manage.</li>\n'+
-'          <li>A product mix built for your '+esc(p.who||'people')+'. '+esc(p.mix)+'</li>\n'+
-'          <li>Tap-to-pay checkout. No cash, no coins, no lines.</li>\n'+
-'          <li>Optional custom wrap in your branding, so the cooler looks like part of '+esc(short)+'. We front the wrap and a $'+esc(fee)+' install fee and recover them from your commission before payouts begin.</li>\n'+
-'        </ul>\n      </div>\n      <div>\n        <h2>Your share</h2>\n'+
-'        <div class="big"><span class="pct">A share of every sale</span><span>Paid monthly with a statement, starting after a 90-day trial period. Commission is paid for each month the cooler sells $1,000 or more. We agree the rate together on the walkthrough.</span></div>\n'+
-'        <h2 style="margin-top:22px">What we need</h2>\n        <p style="font-size:15px">'+esc(p.spot)+'</p>\n      </div>\n    </div>\n  </section>\n'+
-'  <section>\n    <h2>The agreement</h2>\n    <div class="note">'+esc(p.approval)+'</div>\n  </section>\n'+
-'  <div class="cta">\n    <div>\n      <h2>Next step</h2>\n      <p>A 10-minute walk of the space is all it takes. I will bring the agreement and we can pick the spot together.</p>\n    </div>\n'+
-'    <a class="btn" href="tel:'+esc((SET.opPhone||'').replace(/[^\d+]/g,''))+'">Call or text '+esc(firstName(SET.opContact))+' · '+esc(SET.opPhone)+'</a>\n  </div>\n'+
-'  <footer>\n    <div><b>'+esc((SET.opContact||'').split(',')[0])+'</b><br>'+esc(((SET.opContact||'').split(',')[1]||'').trim())+(SET.opContact&&SET.opContact.indexOf(',')>0?', ':'')+esc(SET.opLegal||SET.opName)+' · '+esc(SET.opAddress)+'</div>\n'+
-'    <div style="text-align:right"><a href="tel:'+esc((SET.opPhone||'').replace(/[^\d+]/g,''))+'">'+esc(SET.opPhone)+'</a><br><a href="mailto:'+esc(SET.opEmail)+'">'+esc(SET.opEmail)+'</a><br><a href="https://'+esc(SET.opWeb)+'">'+esc(SET.opWeb)+'</a></div>\n'+
-'  </footer>\n</div>\n</body>\n</html>\n';
-  }
+  function proposalHTML(p){return T.proposalHTML(p,SET);}
 
   var TPL_AGREEMENT=JSON.parse($('#tpl-agreement').textContent);
   var TPL_PAYOUT=JSON.parse($('#tpl-payout').textContent);
@@ -389,7 +330,7 @@
     return {css:css,body:doc.querySelector('.doc').innerHTML};
   }
   var PACKET_CSS='@page{size:Letter;margin:0.75in 0.8in}\n'+
-    'body{margin:0;background:#fff;color:#14212b}\n'+
+    'body{margin:0;background:#fff;color:#2B2B28}\n'+
     '.pdoc{break-after:page;page-break-after:always}.pdoc:last-child{break-after:auto;page-break-after:auto}\n'+
     '.pdoc h2{break-after:avoid;page-break-after:avoid}\n'+
     '.proposal .sheet{max-width:none;margin:0;border:0;border-radius:0;box-shadow:none}\n'+
@@ -399,24 +340,24 @@
     '.agr .pg,.pay .pg{padding:0;min-height:0;height:auto;position:static}\n'+
     '.agr .pg+.pg{border-top:0;margin-top:14px}\n'+
     '.agr p,.agr li,.agr .party,.agr .key,.agr .parties,.agr .sig,.agr .extra,.pay .grid,.pay .sub,.pay .info,.pay .choice,.pay .sig{break-inside:avoid;page-break-inside:avoid}\n'+
-    '.agr .fill,.pay .fill{display:inline-block;border-bottom:1px solid #14212b;padding:0 4px;min-width:70px;line-height:1.25;vertical-align:baseline}\n'+
+    '.agr .fill,.pay .fill{display:inline-block;border-bottom:1px solid #2B2B28;padding:0 4px;min-width:70px;line-height:1.25;vertical-align:baseline}\n'+
     '.agr .fill.empty{min-width:150px}.pay .fill{display:block;width:100%;min-height:1.3em}\n'+
-    '.agr .fillblock,.pay .fillblock{display:block;border:1px solid #c9d3da;border-radius:4px;padding:6px 8px;min-height:44px;white-space:pre-wrap;margin-top:3px}\n'+
+    '.agr .fillblock,.pay .fillblock{display:block;border:1px solid #D7D2C7;border-radius:4px;padding:6px 8px;min-height:44px;white-space:pre-wrap;margin-top:3px}\n'+
     '.agr .key .fill{min-width:40px}.agr .key .fill.empty{min-width:60px}\n'+
-    '.agr .sigpad,.pay .sigpad{height:64px;border-bottom:1.5px solid #14212b;margin-bottom:6px}\n'+
+    '.agr .sigpad,.pay .sigpad{height:64px;border-bottom:1.5px solid #2B2B28;margin-bottom:6px}\n'+
     '.agr .sigline{margin-top:6px}.agr .sigline .fill{display:block;width:100%;min-height:1.3em}\n'+
-    '.agr .box,.pay .box{display:inline-block;width:11px;height:11px;border:1.2px solid #14212b;vertical-align:-1px;margin:0 4px 0 2px;position:relative}\n'+
-    '.agr .box.on::after,.pay .box.on::after{content:"";position:absolute;left:2px;top:2px;right:2px;bottom:2px;background:#14212b}\n'+
+    '.agr .box,.pay .box{display:inline-block;width:11px;height:11px;border:1.5px solid #2B2B28;vertical-align:-1px;margin:0 4px 0 2px;position:relative}\n'+
+    '.agr .box.on::after,.pay .box.on::after{content:"";position:absolute;left:2px;top:2px;right:2px;bottom:2px;background:#2B2B28}\n'+
     '.pay .choice label{display:inline-flex;align-items:center;gap:4px;margin-right:16px}\n'+
     '.agr .key,.agr .info,.pay .info,.pay .sub{-webkit-print-color-adjust:exact;print-color-adjust:exact}\n'+
-    '@media screen{body{background:#e9eef2;padding:24px 12px}.pdoc{background:#fff;max-width:8.5in;margin:0 auto 24px;padding:0.6in 0.7in;box-shadow:0 6px 24px rgba(20,33,43,.12)}.proposal{padding:0;overflow:hidden}}';
+    '@media screen{body{background:#F3F1EC;padding:24px 12px}.pdoc{background:#fff;max-width:8.5in;margin:0 auto 24px;padding:0.6in 0.7in;border:2px solid #2B2B28}.proposal{padding:0;overflow:hidden}}';
   function packetHTML(p){
     var prop=proposalHTML(p);
     var propCSS=scopeCSS(prop.match(/<style>([\s\S]*?)<\/style>/)[1],'.proposal');
     var propBody=prop.match(/<div class="sheet">[\s\S]*<\/div>\s*<\/body>/)[0].replace(/<\/body>\s*$/,'');
     var agr=staticize(agreementHTML(p),'.agr'),pay=staticize(payoutHTML(p),'.pay');
     return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>'+esc(SET.opName)+' Packet for '+esc(p.company||'Prospect')+'</title>\n'+
-      '<style>\n'+propCSS+'\n'+agr.css+'\n'+pay.css+'\n'+PACKET_CSS+'\n</style>\n</head>\n<body>\n'+
+      '<link rel="stylesheet" href="'+T.FONTS+'">\n<style>\n'+propCSS+'\n'+agr.css+'\n'+pay.css+'\n'+PACKET_CSS+'\n</style>\n</head>\n<body>\n'+
       '<div class="pdoc proposal">'+propBody+'</div>\n'+
       '<div class="pdoc agr"><div class="doc">'+agr.body+'</div></div>\n'+
       '<div class="pdoc pay"><div class="doc">'+pay.body+'</div></div>\n</body>\n</html>\n';
