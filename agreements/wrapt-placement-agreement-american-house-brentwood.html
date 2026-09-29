@@ -7,7 +7,7 @@
 <style>
   :root{--ink:#14212b;--ink-soft:#4c5a66;--line:#c9d3da;--paper:#fff;--wash:#f3f7f9;--brand:#0b6e7a;--brand-deep:#08525b;}
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--wash);color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-size:9.9pt;line-height:1.32}
+  html,body{background:var(--wash);color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-size:10.4pt;line-height:1.38}
   .doc{max-width:8.5in;margin:24px auto;background:var(--paper);box-shadow:0 6px 24px rgba(20,33,43,.10)}
   .pg{padding:0.6in 0.7in 0.55in;min-height:11in;position:relative}
   .pg+.pg{border-top:1px dashed var(--line)}
@@ -39,16 +39,17 @@
   .init .fill{min-width:44px}
   @media (max-width:700px){.pg{padding:20px 16px 60px;min-height:0}.parties,.sig{grid-template-columns:1fr}.foot{left:16px;right:16px}}
   @media print{
-    html,body{background:#fff}
+    html,body{background:#fff;font-size:10.5pt;line-height:1.4}
     .doc{max-width:none;margin:0;box-shadow:none}
-    .pg{height:10.1in;min-height:0;padding:0;overflow:hidden;break-after:page;page-break-after:always}
-    .pg:last-child{break-after:auto;page-break-after:auto}
+    .pg{min-height:0;height:auto;padding:0;overflow:visible}
     .pg+.pg{border-top:0}
-    .foot{position:absolute;bottom:0;left:0;right:0}
-    .line{height:20px !important;margin-bottom:2px}.lbl{margin-bottom:5px}.sig{margin-top:8px}
-    h2{margin:7px 0 2px}
+    .foot{display:none}
+    .top{margin-bottom:14px}
+    h2{break-after:avoid;page-break-after:avoid;margin-top:12px}
+    p,li,.party,.key{break-inside:avoid;page-break-inside:avoid}
+    .parties,.sig{break-inside:avoid;page-break-inside:avoid}
     .key{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    @page{size:Letter;margin:0.45in 0.7in 0.45in}
+    @page{size:Letter;margin:0.75in 0.8in}
   }
 </style>
 </head>

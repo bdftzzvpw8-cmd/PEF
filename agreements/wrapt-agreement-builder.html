@@ -15,7 +15,7 @@
     --serif:Georgia,"Times New Roman",serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--wash);color:var(--ink);font-family:var(--serif);font-size:9.9pt;line-height:1.32}
+  html,body{background:var(--wash);color:var(--ink);font-family:var(--serif);font-size:10.4pt;line-height:1.38}
   body{padding-bottom:40px}
 
   /* ---------- tool bar ---------- */
@@ -96,6 +96,10 @@
   .locked .f:not(.host-sig){pointer-events:none}
   .note{font-family:var(--sans);font-size:12.5px;color:var(--ink-soft);max-width:8.5in;margin:0 auto;padding:0 8px}
 
+  .mailbox{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:var(--sans);font-size:13px}
+  .mailbox b{display:block;margin-bottom:4px}
+  .mailbox pre{white-space:pre-wrap;font:12.5px/1.45 var(--sans);background:var(--wash);padding:8px 10px;border-radius:6px;margin:6px 0;max-height:220px;overflow:auto}
+  .mailbox button{font:600 12px var(--sans);padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;margin-right:6px}
   @media (max-width:760px){
     .pg{padding:20px 16px 56px;min-height:0}
     .parties,.sig{grid-template-columns:1fr}
@@ -107,24 +111,22 @@
   }
 
   @media print{
-    html,body{background:#fff;padding:0}
-    .bar,.banner,.tools,.hint,.note,.x{display:none !important}
-    .doc{max-width:none;margin:0;box-shadow:none}
-    .pg{height:10.1in;min-height:0;padding:0;overflow:hidden;break-after:page;page-break-after:always}
-    .pg:last-child{break-after:auto;page-break-after:auto}
-    .pg+.pg{border-top:0}
-    .foot{position:absolute;bottom:0;left:0;right:0}
-    .pad{height:54px}.lbl{margin:1px 0 4px}.sigline{margin-top:2px}.sigline .f{padding-top:0;padding-bottom:0}.sig{margin-top:6px}.audit{margin-top:1px;font-size:7.5pt}
-    h2{margin:7px 0 2px}
+    html,body{background:#fff;padding:0;font-size:10.5pt;line-height:1.4}
+    .bar,.banner,.tools,.hint,.note,.x,.mailbox,.foot{display:none !important}
+    .doc{max-width:none;margin:0;box-shadow:none;border:0}
+    .pg{min-height:0;height:auto;padding:0;overflow:visible}
+    .pg+.pg{border-top:0;padding-top:0}
+    .top{margin-bottom:14px}
+    h2{break-after:avoid;page-break-after:avoid;margin-top:12px}
+    p,li,.party,.key,.extra,.pad{break-inside:avoid;page-break-inside:avoid}
+    .parties,.sig{break-inside:avoid;page-break-inside:avoid}
     .f{background:transparent !important;border-bottom:1px solid var(--ink)}
     .f::placeholder{color:transparent}
-    textarea.f{border:1px solid var(--line);min-height:32px}
-    html,body{line-height:1.31}
-    .extra h2{margin-top:5px}
-    .pad{background:transparent}
+    textarea.f{border:1px solid var(--line);min-height:40px}
+    .pad{background:transparent;height:70px}
     .key{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .extra.empty{display:none}
-    @page{size:Letter;margin:0.45in 0.7in 0.45in}
+    @page{size:Letter;margin:0.75in 0.8in}
   }
 </style>
 </head>
@@ -471,7 +473,20 @@
   }
   function mail(to,subject,body){
     var href='mailto:'+encodeURIComponent(to||'')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-    window.location.href=href;
+    try{var a=document.createElement('a');a.href=href;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},1000);}catch(e){}
+    var old=$('#mailbox');if(old)old.remove();
+    var box=document.createElement('div');box.className='mailbox';box.id='mailbox';
+    box.innerHTML='<b>If an email did not open, copy this into your email app:</b>'+
+      '<div><small>To:</small> <span id="mbTo"></span> &nbsp; <small>Subject:</small> <span id="mbSubj"></span></div>'+
+      '<pre id="mbBody"></pre>'+
+      '<button type="button" id="mbCopy">Copy email text</button><button type="button" id="mbCopyTo">Copy address</button>';
+    $('#banner').appendChild(box);
+    $('#mbTo').textContent=to||'(add the address)';$('#mbSubj').textContent=subject;$('#mbBody').textContent=body;
+    var copy=function(text,btn){var done=function(){btn.textContent='Copied';setTimeout(function(){btn.textContent=btn.dataset.l;},1500);};btn.dataset.l=btn.dataset.l||btn.textContent;
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,function(){fallback();});}else fallback();
+      function fallback(){var r=document.createRange();r.selectNodeContents($('#mbBody'));var s=window.getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand('copy');done();}catch(e){}}};
+    $('#mbCopy').addEventListener('click',function(){copy('Subject: '+subject+'\n\n'+body,this);});
+    $('#mbCopyTo').addEventListener('click',function(){copy(to||'',this);});
   }
 
   $('#btnSave').addEventListener('click',function(){var n=download();toast('Downloaded '+n);});
@@ -516,6 +531,7 @@
   });
 
   render();
+  try{localStorage.setItem('wrapt-test','1');localStorage.removeItem('wrapt-test');}catch(e){$('#banner').insertAdjacentHTML('afterbegin','<b style="color:#8a1c1c">This browser is not saving your work between visits. Use "Save a copy" before closing.</b>');}
   setTimeout(function(){pads.Op.resize();pads.Host.resize();},50);
 })();
 </script>

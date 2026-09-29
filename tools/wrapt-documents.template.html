@@ -74,6 +74,8 @@
   .msg{font-size:13px;padding:10px 12px;border-radius:8px;background:#fff8ec;border:1px solid #f1d9a6;margin-bottom:10px}
   .msg.ok{background:#eaf7ef;border-color:#bfe3cc;color:var(--ok)}
   .msg[hidden]{display:none}
+  .mailbox pre{white-space:pre-wrap;font:13px/1.5 var(--sans);background:var(--wash);padding:10px 12px;border-radius:8px;margin:6px 0 10px;max-height:260px;overflow:auto}
+  .mailbox[hidden]{display:none}
   #settingsCard[hidden]{display:none}
   .empty-main{padding:40px 20px;text-align:center;color:var(--ink-soft)}
   .empty-main b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
@@ -147,6 +149,13 @@
         </div>
       </div>
 
+      <div class="actions" style="margin:0 0 12px">
+        <button type="button" class="btn accent" id="printPacket">Print all three</button>
+        <button type="button" class="btn" id="dlPacket">Download packet</button>
+        <span class="note">Proposal, agreement and payout form in one print job, each starting on a new page. Blanks print as lines to fill by hand.</span>
+      </div>
+      <iframe id="fr-packet" title="Print packet" style="position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none" aria-hidden="true"></iframe>
+
       <div class="tabs" role="tablist">
         <button type="button" data-tab="proposal" class="on" role="tab">Proposal</button>
         <button type="button" data-tab="agreement" role="tab">Agreement</button>
@@ -175,6 +184,13 @@
           <button type="button" class="btn" id="mailProposal">Email proposal</button>
           <button type="button" class="btn ghost" id="printProposal">Print / PDF</button>
           <span class="note">"Email proposal" downloads the file and opens a cover email; attach the file.</span>
+        </div>
+        <div class="card mailbox" id="mailbox" hidden>
+          <h2>Cover email</h2>
+          <p class="hint" style="margin-bottom:6px">The proposal file <b id="mbFile"></b> was downloaded. If your email app did not open, paste this into a new email and attach that file.</p>
+          <div class="inline" style="margin-bottom:6px"><span><b>To:</b> <span id="mbTo"></span></span><span><b>Subject:</b> <span id="mbSubj"></span></span></div>
+          <pre id="mbBody"></pre>
+          <div class="inline"><button type="button" class="btn ghost" id="mbCopy">Copy email text</button><button type="button" class="btn ghost" id="mbCopyTo">Copy address</button><button type="button" class="btn ghost" id="mbClose">Close</button></div>
         </div>
         <div class="preview"><div class="ptitle"><span>Preview</span><span id="proposalName"></span></div><iframe id="fr-proposal" title="Proposal preview"></iframe></div>
       </section>
@@ -228,18 +244,18 @@
 
   /* ---------- venue defaults ---------- */
   var VENUES={
-    'Gym & fitness':{who:'members',lead:'Members grab a protein shake, electrolyte drink or cold water on the way out. They tap a card, take what they want and walk off. No front-desk time, no cash, no coins.',mix:'Protein shakes, electrolyte and recovery drinks, cold water, energy drinks and grab-and-go protein snacks. Tell us what your members ask for and we stock it.',spot:'A spot near the exit or front desk with a standard wall outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'},
-    'Hotel':{who:'guests',lead:'Guests grab drinks and snacks at any hour. They tap a card, take what they want and it checks out on its own. It reads as your amenity, and the front desk never has to touch it.',mix:'Cold drinks, sparkling water, coffee drinks, snacks and late-night essentials. Travelers buy what they forgot to pack.',spot:'A spot in the lobby or near the elevators with a standard wall outlet.',approval:'The agreement is two pages. If the owner or management company needs to sign off, I am glad to send it to them directly.'},
-    'Apartment community':{who:'residents',lead:'A 24/7 resident amenity for the lobby, clubroom or mail room. Residents tap a card, take a drink or snack, and it checks out on its own. Your team never handles money or restocking.',mix:'Cold drinks, sparkling water, coffee drinks, snacks and a few household basics residents run out of.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is two pages. If the management company needs to approve a vendor, tell me who to send it to and I will take that off your plate.'},
-    'Senior living':{who:'residents, families and staff',lead:'A 24/7 resident amenity for the lobby or clubroom. Residents, families and staff tap a card, take a drink or snack, and it checks out on its own. Your team never handles money or restocking.',mix:'Waters, juices, coffee drinks, and snacks residents and visiting families like. We choose the mix with you and adjust it as we see what sells.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is two pages. If corporate or your regional office needs to approve a vendor, tell me who to send it to and I will take that off your plate.'},
-    'Office / coworking':{who:'employees and tenants',lead:'Employees and tenants get cold drinks and snacks without leaving the building. They tap a card, take what they want and it checks out on its own. Nothing for your team to manage.',mix:'Cold drinks, sparkling water, coffee and energy drinks, and snacks for the afternoon slump.',spot:'A spot in the break room or lobby with a standard wall outlet.',approval:'The agreement is two pages. If facilities or the building owner needs to sign off, I am glad to send it to them directly.'},
-    'Dealership / auto repair':{who:'customers',lead:'Customers waiting on you can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the wait better and costs you nothing.',mix:'Cold drinks, coffee drinks, water and snacks for people waiting on a car.',spot:'A spot in the waiting area with a standard wall outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'},
-    'Laundromat':{who:'customers',lead:'Customers waiting on a load can grab a cold drink or snack themselves. They tap a card, take what they want and it checks out on its own. No change machine, no cash, nothing for you to handle.',mix:'Cold drinks, water, snacks and a few laundry basics people forget to bring.',spot:'A spot along a wall near the seating with a standard outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'},
-    'Medical / clinic / vet':{who:'patients and visitors',lead:'Patients and visitors waiting on you can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the wait better and costs you nothing.',mix:'Water, juices, coffee drinks and light snacks suited to a waiting room.',spot:'A spot in the waiting area with a standard wall outlet.',approval:'The agreement is two pages. If the practice owner or administrator needs to sign, I am glad to send it to them directly.'},
-    'Salon / beauty / tattoo':{who:'clients',lead:'Clients in the chair or waiting can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the visit nicer and costs you nothing.',mix:'Sparkling water, cold drinks, coffee drinks and light snacks.',spot:'A spot near the waiting area with a standard wall outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'},
-    'Church / school / youth':{who:'visitors and families',lead:'Visitors and families can grab a drink or snack anytime. They tap a card, take what they want and it checks out on its own. No staff time, no cash handling.',mix:'Water, juices, cold drinks and family-friendly snacks.',spot:'A spot in a lobby or common area with a standard wall outlet.',approval:'The agreement is two pages. If a board or administrator needs to approve it, tell me who to send it to.'},
-    'Entertainment / golf':{who:'guests',lead:'Guests can grab a cold drink or snack between rounds or events. They tap a card, take what they want and it checks out on its own. No staff time, no cash handling.',mix:'Cold drinks, sports drinks, water and grab-and-go snacks.',spot:'A spot near the entrance or turn with a standard wall outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'},
-    'Other':{who:'customers and staff',lead:'Customers and staff can grab a cold drink or snack anytime. They tap a card, take what they want and it checks out on its own.',mix:'Cold drinks, water, coffee drinks and snacks, chosen with you and adjusted as we see what sells.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'}
+    'Gym & fitness':{who:'members',lead:'Members grab a protein shake, electrolyte drink or cold water on the way out. They tap a card, take what they want and walk off. No front-desk time, no cash, no coins.',mix:'Protein shakes, electrolyte and recovery drinks, cold water, energy drinks and grab-and-go protein snacks. Tell us what your members ask for and we stock it.',spot:'A spot near the exit or front desk with a standard wall outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'},
+    'Hotel':{who:'guests',lead:'Guests grab drinks and snacks at any hour. They tap a card, take what they want and it checks out on its own. It reads as your amenity, and the front desk never has to touch it.',mix:'Cold drinks, sparkling water, coffee drinks, snacks and late-night essentials. Travelers buy what they forgot to pack.',spot:'A spot in the lobby or near the elevators with a standard wall outlet.',approval:'The agreement is three pages. If the owner or management company needs to sign off, I am glad to send it to them directly.'},
+    'Apartment community':{who:'residents',lead:'A 24/7 resident amenity for the lobby, clubroom or mail room. Residents tap a card, take a drink or snack, and it checks out on its own. Your team never handles money or restocking.',mix:'Cold drinks, sparkling water, coffee drinks, snacks and a few household basics residents run out of.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is three pages. If the management company needs to approve a vendor, tell me who to send it to and I will take that off your plate.'},
+    'Senior living':{who:'residents, families and staff',lead:'A 24/7 resident amenity for the lobby or clubroom. Residents, families and staff tap a card, take a drink or snack, and it checks out on its own. Your team never handles money or restocking.',mix:'Waters, juices, coffee drinks, and snacks residents and visiting families like. We choose the mix with you and adjust it as we see what sells.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is three pages. If corporate or your regional office needs to approve a vendor, tell me who to send it to and I will take that off your plate.'},
+    'Office / coworking':{who:'employees and tenants',lead:'Employees and tenants get cold drinks and snacks without leaving the building. They tap a card, take what they want and it checks out on its own. Nothing for your team to manage.',mix:'Cold drinks, sparkling water, coffee and energy drinks, and snacks for the afternoon slump.',spot:'A spot in the break room or lobby with a standard wall outlet.',approval:'The agreement is three pages. If facilities or the building owner needs to sign off, I am glad to send it to them directly.'},
+    'Dealership / auto repair':{who:'customers',lead:'Customers waiting on you can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the wait better and costs you nothing.',mix:'Cold drinks, coffee drinks, water and snacks for people waiting on a car.',spot:'A spot in the waiting area with a standard wall outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'},
+    'Laundromat':{who:'customers',lead:'Customers waiting on a load can grab a cold drink or snack themselves. They tap a card, take what they want and it checks out on its own. No change machine, no cash, nothing for you to handle.',mix:'Cold drinks, water, snacks and a few laundry basics people forget to bring.',spot:'A spot along a wall near the seating with a standard outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'},
+    'Medical / clinic / vet':{who:'patients and visitors',lead:'Patients and visitors waiting on you can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the wait better and costs you nothing.',mix:'Water, juices, coffee drinks and light snacks suited to a waiting room.',spot:'A spot in the waiting area with a standard wall outlet.',approval:'The agreement is three pages. If the practice owner or administrator needs to sign, I am glad to send it to them directly.'},
+    'Salon / beauty / tattoo':{who:'clients',lead:'Clients in the chair or waiting can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the visit nicer and costs you nothing.',mix:'Sparkling water, cold drinks, coffee drinks and light snacks.',spot:'A spot near the waiting area with a standard wall outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'},
+    'Church / school / youth':{who:'visitors and families',lead:'Visitors and families can grab a drink or snack anytime. They tap a card, take what they want and it checks out on its own. No staff time, no cash handling.',mix:'Water, juices, cold drinks and family-friendly snacks.',spot:'A spot in a lobby or common area with a standard wall outlet.',approval:'The agreement is three pages. If a board or administrator needs to approve it, tell me who to send it to.'},
+    'Entertainment / golf':{who:'guests',lead:'Guests can grab a cold drink or snack between rounds or events. They tap a card, take what they want and it checks out on its own. No staff time, no cash handling.',mix:'Cold drinks, sports drinks, water and grab-and-go snacks.',spot:'A spot near the entrance or turn with a standard wall outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'},
+    'Other':{who:'customers and staff',lead:'Customers and staff can grab a cold drink or snack anytime. They tap a card, take what they want and it checks out on its own.',mix:'Cold drinks, water, coffee drinks and snacks, chosen with you and adjusted as we see what sells.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is three pages. I will bring it with me and walk you through it.'}
   };
 
   /* ---------- state ---------- */
@@ -284,7 +300,7 @@
 '  .cta a.btn{display:inline-block;background:var(--accent);color:var(--ink);font-weight:700;text-decoration:none;padding:14px 22px;border-radius:8px;white-space:nowrap}\n'+
 '  footer{padding:22px 48px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:14px;color:var(--ink-soft)}\n  footer b{color:var(--ink)}\n  footer a{color:var(--brand);text-decoration:none}\n'+
 '  @media (max-width:640px){header,.hero,section,.cta,footer{padding-left:20px;padding-right:20px}.sheet{margin:0;border-radius:0;border:0}.steps,.split{grid-template-columns:1fr}.meta{text-align:left}h1{font-size:26px}}\n'+
-'  @media print{html,body{background:#fff}.sheet{margin:0;max-width:none;border:0;border-radius:0;box-shadow:none}header,.cta,.step,.big,.note{-webkit-print-color-adjust:exact;print-color-adjust:exact}section{break-inside:avoid}@page{margin:0.5in}}\n'+
+'  @media print{html,body{background:#fff}.sheet{margin:0;max-width:none;border:0;border-radius:0;box-shadow:none}header,.cta,.step,.big,.note{-webkit-print-color-adjust:exact;print-color-adjust:exact}section,.cta,footer{break-inside:avoid}header{padding:22px 32px 18px}.hero{padding:20px 32px 4px}section{padding:14px 32px}.cta{padding:18px 32px}footer{padding:12px 32px}h1{font-size:24px;margin:6px 0 10px}.hero p{font-size:15px}.step{padding:12px 14px 10px}li{margin-bottom:6px;font-size:14px}h2{margin-bottom:8px}.split{gap:24px}@page{size:Letter;margin:0.5in 0.6in}}\n'+
 '</style>\n</head>\n<body>\n<div class="sheet">\n'+
 '  <header>\n    <div class="logo">'+esc(SET.opName)+'<small>Smart cooler placement</small></div>\n    <div class="meta"><b>Prepared for '+esc(co)+'</b>'+esc(p.venue)+' · '+esc(fmtDate(p.pdate||today()))+'</div>\n  </header>\n'+
 '  <div class="hero">\n    <div class="eyebrow">Proposal</div>\n    <h1>A free AI smart cooler for '+esc(co)+'</h1>\n    <p>'+esc(p.lead)+'</p>\n  </div>\n'+
@@ -329,6 +345,85 @@
   function slug(s){return (s||'Draft').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-')||'Draft';}
   function download(name,html){var blob=new Blob([html],{type:'text/html'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},2000);return name;}
 
+  /* ---------- print packet: proposal + agreement + payout in one document ---------- */
+  var ONES=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+  var TENS=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+  function words(n){n=Number(n);if(isNaN(n))return '____';if(n%1!==0)return String(n);if(n<20)return ONES[n];if(n<100)return TENS[Math.floor(n/10)]+(n%10?'-'+ONES[n%10]:'');if(n===100)return 'one hundred';return String(n);}
+  function scopeCSS(css,P){
+    css=css.replace(/@media \(max-width:[^{]*\{(?:[^{}]*\{[^{}]*\})*\s*\}/g,'');
+    css=css.replace(/@media print\s*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g,'$1');
+    css=css.replace(/@page\s*\{[^}]*\}/g,'');
+    return css.replace(/(^|\})\s*([^{}@]+)\{/g,function(m,pre,sel){
+      var out=sel.split(',').map(function(x){x=x.trim();if(!x)return null;if(x===':root'||x==='html'||x==='body'||x==='*')return x==='*'?P+' *':P;return P+' '+x;}).filter(Boolean).join(',');
+      return pre+'\n'+out+'{';});
+  }
+  function staticize(html,scope){
+    var doc=new DOMParser().parseFromString(html,'text/html');
+    var S=JSON.parse(doc.querySelector('#wrapt-state').textContent),F=S.fields;
+    var css=scopeCSS(doc.querySelector('style').textContent,scope);
+    var q=function(sel){return Array.prototype.slice.call(doc.querySelectorAll(sel));};
+    q('[data-k]').forEach(function(el){
+      var k=el.dataset.k,v=F[k]!=null?String(F[k]):'';
+      if(el.tagName==='SELECT'){var o=el.querySelector('option[value="'+v+'"]');v=o?o.textContent:v;}
+      if(el.type==='date')v=fmtDate(v);
+      var span=doc.createElement('span');
+      if(el.tagName==='TEXTAREA'){span.className='fillblock'+(v?'':' empty');span.textContent=v;}
+      else{span.className='fill'+(v?'':' empty');span.textContent=v||' ';}
+      el.parentNode.replaceChild(span,el);
+    });
+    q('[data-show]').forEach(function(el){var k=el.dataset.show,v;
+      if(k==='commissionWords')v=F.commission===''?'____':words(F.commission);
+      else if(k==='commission')v=F.commission===''?'__':F.commission;
+      else if(k==='termWords')v=words(F.termYears)+' ('+F.termYears+') years';
+      else if(k==='hostCompany')v=F.hostCompany||(scope==='.agr'?'Host':'your location');
+      else if(k==='opEmailOrPhone')v=F.opEmail||F.opPhone||'';
+      else v=F[k]||'';el.textContent=v;});
+    q('[data-r]').forEach(function(r){var b=doc.createElement('span');b.className='box'+(F[r.dataset.r]===r.value?' on':'');r.parentNode.replaceChild(b,r);});
+    q('.pad').forEach(function(el){var d=doc.createElement('div');d.className='sigpad';el.parentNode.replaceChild(d,el);});
+    q('.bar,.banner,.tools,.note,.hint,.x,.audit,.mailbox,.foot,script').forEach(function(el){el.parentNode.removeChild(el);});
+    var w=doc.getElementById('wrapFeeWrap');if(w&&F.wrap!=='yes')w.parentNode.removeChild(w);
+    var ex=doc.getElementById('extra');if(ex&&!(F.extraTerms||'').trim())ex.parentNode.removeChild(ex);
+    var dep=doc.getElementById('subDeposit'),chk=doc.getElementById('subCheck');
+    if(dep&&chk){if(F.method==='check'){dep.parentNode.removeChild(dep);chk.removeAttribute('hidden');}else{chk.parentNode.removeChild(chk);dep.removeAttribute('hidden');}}
+    return {css:css,body:doc.querySelector('.doc').innerHTML};
+  }
+  var PACKET_CSS='@page{size:Letter;margin:0.75in 0.8in}\n'+
+    'body{margin:0;background:#fff;color:#14212b}\n'+
+    '.pdoc{break-after:page;page-break-after:always}.pdoc:last-child{break-after:auto;page-break-after:auto}\n'+
+    '.pdoc h2{break-after:avoid;page-break-after:avoid}\n'+
+    '.proposal .sheet{max-width:none;margin:0;border:0;border-radius:0;box-shadow:none}\n'+
+    '.proposal header,.proposal .cta,.proposal .step,.proposal .big,.proposal .note{-webkit-print-color-adjust:exact;print-color-adjust:exact}\n'+
+    '.proposal section,.proposal .cta,.proposal footer{break-inside:avoid;page-break-inside:avoid}\n'+
+    '.agr .doc,.pay .doc{max-width:none;margin:0;box-shadow:none;border:0}\n'+
+    '.agr .pg,.pay .pg{padding:0;min-height:0;height:auto;position:static}\n'+
+    '.agr .pg+.pg{border-top:0;margin-top:14px}\n'+
+    '.agr p,.agr li,.agr .party,.agr .key,.agr .parties,.agr .sig,.agr .extra,.pay .grid,.pay .sub,.pay .info,.pay .choice,.pay .sig{break-inside:avoid;page-break-inside:avoid}\n'+
+    '.agr .fill,.pay .fill{display:inline-block;border-bottom:1px solid #14212b;padding:0 4px;min-width:70px;line-height:1.25;vertical-align:baseline}\n'+
+    '.agr .fill.empty{min-width:150px}.pay .fill{display:block;width:100%;min-height:1.3em}\n'+
+    '.agr .fillblock,.pay .fillblock{display:block;border:1px solid #c9d3da;border-radius:4px;padding:6px 8px;min-height:44px;white-space:pre-wrap;margin-top:3px}\n'+
+    '.agr .key .fill{min-width:40px}.agr .key .fill.empty{min-width:60px}\n'+
+    '.agr .sigpad,.pay .sigpad{height:64px;border-bottom:1.5px solid #14212b;margin-bottom:6px}\n'+
+    '.agr .sigline{margin-top:6px}.agr .sigline .fill{display:block;width:100%;min-height:1.3em}\n'+
+    '.agr .box,.pay .box{display:inline-block;width:11px;height:11px;border:1.2px solid #14212b;vertical-align:-1px;margin:0 4px 0 2px;position:relative}\n'+
+    '.agr .box.on::after,.pay .box.on::after{content:"";position:absolute;left:2px;top:2px;right:2px;bottom:2px;background:#14212b}\n'+
+    '.pay .choice label{display:inline-flex;align-items:center;gap:4px;margin-right:16px}\n'+
+    '.agr .key,.agr .info,.pay .info,.pay .sub{-webkit-print-color-adjust:exact;print-color-adjust:exact}\n'+
+    '@media screen{body{background:#e9eef2;padding:24px 12px}.pdoc{background:#fff;max-width:8.5in;margin:0 auto 24px;padding:0.6in 0.7in;box-shadow:0 6px 24px rgba(20,33,43,.12)}.proposal{padding:0;overflow:hidden}}';
+  function packetHTML(p){
+    var prop=proposalHTML(p);
+    var propCSS=scopeCSS(prop.match(/<style>([\s\S]*?)<\/style>/)[1],'.proposal');
+    var propBody=prop.match(/<div class="sheet">[\s\S]*<\/div>\s*<\/body>/)[0].replace(/<\/body>\s*$/,'');
+    var agr=staticize(agreementHTML(p),'.agr'),pay=staticize(payoutHTML(p),'.pay');
+    return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>'+esc(SET.opName)+' Packet for '+esc(p.company||'Prospect')+'</title>\n'+
+      '<style>\n'+propCSS+'\n'+agr.css+'\n'+pay.css+'\n'+PACKET_CSS+'\n</style>\n</head>\n<body>\n'+
+      '<div class="pdoc proposal">'+propBody+'</div>\n'+
+      '<div class="pdoc agr"><div class="doc">'+agr.body+'</div></div>\n'+
+      '<div class="pdoc pay"><div class="doc">'+pay.body+'</div></div>\n</body>\n</html>\n';
+  }
+  function printHTML(html){var fr=$('#fr-packet');fr.onload=function(){setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){toast('Printing was blocked. Use "Download packet" and print that file.');}},400);};fr.srcdoc=html;}
+  $('#printPacket').addEventListener('click',function(){var p=cur();if(!p)return;printHTML(packetHTML(p));toast('Sending the packet to the printer. Pick "Save as PDF" in the print dialog for a PDF.',true);});
+  $('#dlPacket').addEventListener('click',function(){var p=cur();if(!p)return;toast('Downloaded '+download(SET.opName+'-Packet-'+slug(p.company)+'.html',packetHTML(p)),true);});
+
   /* ---------- rendering ---------- */
   function renderList(){
     var ul=$('#plist');ul.innerHTML='';
@@ -350,12 +445,14 @@
     renderPreview();
   }
   var prevT;
+  var PREVIEW_CSS='<style id="preview-mode">.bar,.banner,.note,.mailbox{display:none !important}body{pointer-events:none}@media print{body{pointer-events:auto}}</style>';
+  function previewOf(html){return html.replace('</head>',PREVIEW_CSS+'</head>');}
   function renderPreview(){
     clearTimeout(prevT);prevT=setTimeout(function(){
       var p=cur();if(!p)return;
-      if(D.tab==='proposal'){$('#fr-proposal').srcdoc=proposalHTML(p);$('#proposalName').textContent=SET.opName+'-Proposal-'+slug(p.company)+'.html';}
-      else if(D.tab==='agreement'){$('#fr-agreement').srcdoc=agreementHTML(p);$('#agreementName').textContent=SET.opName+'-Agreement-'+slug(p.company)+'.html';}
-      else{$('#fr-payout').srcdoc=payoutHTML(p);$('#payoutName').textContent=SET.opName+'-Payout-'+slug(p.company)+'.html';}
+      if(D.tab==='proposal'){$('#fr-proposal').srcdoc=previewOf(proposalHTML(p));$('#proposalName').textContent=SET.opName+'-Proposal-'+slug(p.company)+'.html';}
+      else if(D.tab==='agreement'){$('#fr-agreement').srcdoc=previewOf(agreementHTML(p));$('#agreementName').textContent=SET.opName+'-Agreement-'+slug(p.company)+'.html';}
+      else{$('#fr-payout').srcdoc=previewOf(payoutHTML(p));$('#payoutName').textContent=SET.opName+'-Payout-'+slug(p.company)+'.html';}
     },250);
   }
   function renderAll(){renderList();renderSettings();renderEditor();}
@@ -392,10 +489,9 @@
   $('#dlProposal').addEventListener('click',function(){var p=cur();if(!p)return;toast('Downloaded '+download(SET.opName+'-Proposal-'+slug(p.company)+'.html',proposalHTML(p)),true);});
   $('#dlAgreement').addEventListener('click',function(){var p=cur();if(!p)return;toast('Downloaded '+download(SET.opName+'-Agreement-'+slug(p.company)+'.html',agreementHTML(p))+'. Open it, sign, and click "Send to host".',true);});
   $('#dlPayout').addEventListener('click',function(){var p=cur();if(!p)return;toast('Downloaded '+download(SET.opName+'-Payout-'+slug(p.company)+'.html',payoutHTML(p))+'. Open it and click "Send to host".',true);});
-  function printFrame(id){var fr=$(id);try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){toast('Open the downloaded file and print from there.');}}
-  $('#printProposal').addEventListener('click',function(){printFrame('#fr-proposal');});
-  $('#printAgreement').addEventListener('click',function(){printFrame('#fr-agreement');});
-  $('#printPayout').addEventListener('click',function(){printFrame('#fr-payout');});
+  $('#printProposal').addEventListener('click',function(){var p=cur();if(p)printHTML(proposalHTML(p));});
+  $('#printAgreement').addEventListener('click',function(){var p=cur();if(p)printHTML(agreementHTML(p));});
+  $('#printPayout').addEventListener('click',function(){var p=cur();if(p)printHTML(payoutHTML(p));});
   $('#mailProposal').addEventListener('click',function(){
     var p=cur();if(!p)return;if(!p.email){toast('Add the contact email first.');$('#p_email').focus();return;}
     var name=download(SET.opName+'-Proposal-'+slug(p.company)+'.html',proposalHTML(p));
@@ -403,15 +499,28 @@
     var body='Hi '+firstName(p.contact)+',\n\nThanks for taking the call from our team. As promised, the proposal for '+(p.company||'your location')+' is attached.\n\n'+
       'In short: we place an AI smart cooler at no cost, install it, stock it and service it every week. '+capFirst(shortOf(p))+' earns a share of every sale after a 90-day trial, paid monthly with a statement.\n\n'+
       p.spot+'\n\n'+p.approval+'\n\nCan I stop by this week for a 10-minute look at the space?\n\n'+SET.opContact+'\n'+SET.opName+'\n'+SET.opPhone+' · '+SET.opWeb;
-    window.location.href='mailto:'+encodeURIComponent(p.email)+'?subject='+encodeURIComponent('Proposal: a free smart cooler for '+(p.company||'your location'))+'&body='+encodeURIComponent(body);
-    toast('Downloaded '+name+'. Attach it to the email that just opened.',true);
+    var subject='Proposal: a free smart cooler for '+(p.company||'your location');
+    try{var a=document.createElement('a');a.href='mailto:'+encodeURIComponent(p.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},1000);}catch(e){}
+    showMail(p.email,subject,body,name);
   });
 
+  function showMail(to,subject,body,fileName){
+    var box=$('#mailbox');box.hidden=false;
+    $('#mbFile').textContent=fileName;$('#mbTo').textContent=to;$('#mbSubj').textContent=subject;$('#mbBody').textContent=body;
+    box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  function copyText(text,btn){var l=btn.dataset.l||(btn.dataset.l=btn.textContent);var done=function(){btn.textContent='Copied';setTimeout(function(){btn.textContent=l;},1500);};
+    var fallback=function(){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}ta.remove();};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,fallback);else fallback();}
+  $('#mbCopy').addEventListener('click',function(){copyText('Subject: '+$('#mbSubj').textContent+'\n\n'+$('#mbBody').textContent,this);});
+  $('#mbCopyTo').addEventListener('click',function(){copyText($('#mbTo').textContent,this);});
+  $('#mbClose').addEventListener('click',function(){$('#mailbox').hidden=true;});
   $('#btnBackup').addEventListener('click',function(){var blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='WraptCloser-backup-'+today()+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},2000);toast('Backup downloaded. Keep it somewhere safe; this page stores prospects in this browser only.',true);});
   $('#btnRestore').addEventListener('click',function(){$('#restoreFile').click();});
   $('#restoreFile').addEventListener('change',function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var j=JSON.parse(r.result);if(!j||!j.prospects)throw 0;D=j;SET=D.settings||{};for(var k in DEFAULT_SETTINGS)if(SET[k]==null)SET[k]=DEFAULT_SETTINGS[k];D.settings=SET;save();renderAll();toast('Backup restored: '+D.prospects.length+' prospect(s).',true);}catch(e){toast('That file is not a WraptCloser backup.');}};r.readAsText(f);this.value='';});
 
   renderAll();
+  try{localStorage.setItem('wrapt-test','1');localStorage.removeItem('wrapt-test');}catch(e){var w=document.createElement('div');w.className='msg';w.style.margin='12px 20px 0';w.textContent='This browser is not saving your prospects between visits. Use Backup before you close the page, and Restore when you come back.';$('main').insertBefore(w,$('main').firstChild);}
 })();
 </script>
 </body>

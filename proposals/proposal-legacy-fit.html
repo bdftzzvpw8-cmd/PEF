@@ -54,10 +54,11 @@
   @media print{
     html,body{background:#fff}
     .sheet{margin:0;max-width:none;border:0;border-radius:0;box-shadow:none}
-    header,.cta{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .step,.big,.note{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    section{break-inside:avoid}
-    @page{margin:0.5in}
+    header,.cta,.step,.big,.note{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    section,.cta,footer{break-inside:avoid}
+    header{padding:22px 32px 18px}.hero{padding:20px 32px 4px}section{padding:14px 32px}.cta{padding:18px 32px}footer{padding:12px 32px}
+    h1{font-size:24px;margin:6px 0 10px}.hero p{font-size:15px}.step{padding:12px 14px 10px}li{margin-bottom:6px;font-size:14px}h2{margin-bottom:8px}.split{gap:24px}
+    @page{size:Letter;margin:0.5in 0.6in}
   }
 </style>
 </head>
@@ -106,7 +107,7 @@
 
   <section>
     <h2>The agreement</h2>
-    <div class="note">The agreement is two pages. I will bring it with me and walk you through it.</div>
+    <div class="note">The agreement is three pages. I will bring it with me and walk you through it.</div>
   </section>
 
   <div class="cta">

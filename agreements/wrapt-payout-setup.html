@@ -70,6 +70,10 @@
   .locked .f{pointer-events:none}
   .locked .choice input{pointer-events:none}
 
+  .mailbox{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:var(--sans);font-size:13px}
+  .mailbox b{display:block;margin-bottom:4px}
+  .mailbox pre{white-space:pre-wrap;font:12.5px/1.45 var(--sans);background:var(--wash);padding:8px 10px;border-radius:6px;margin:6px 0;max-height:220px;overflow:auto}
+  .mailbox button{font:600 12px var(--sans);padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;margin-right:6px}
   @media (max-width:760px){
     .pg{padding:20px 16px 56px;min-height:0}
     .grid,.sig{grid-template-columns:1fr}
@@ -77,15 +81,16 @@
     .banner{margin:12px 12px 0}.doc{margin:12px 12px 20px}
   }
   @media print{
-    html,body{background:#fff;padding:0}
-    .bar,.banner,.note{display:none !important}
+    html,body{background:#fff;padding:0;font-size:10.5pt;line-height:1.4}
+    .bar,.banner,.note,.mailbox,.foot{display:none !important}
     .doc{max-width:none;margin:0;box-shadow:none}
-    .pg{height:9.9in;min-height:0;padding:0;overflow:hidden}
-    .foot{position:absolute;bottom:0;left:0;right:0}
+    .pg{min-height:0;height:auto;padding:0;overflow:visible}
+    h2{break-after:avoid;page-break-after:avoid}
+    .grid,.sub,.info,.choice,.sig{break-inside:avoid;page-break-inside:avoid}
     .f{background:transparent !important}
     .f::placeholder{color:transparent}
     .info,.sub{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    @page{size:Letter;margin:0.5in 0.7in 0.55in}
+    @page{size:Letter;margin:0.75in 0.8in}
   }
 </style>
 </head>
@@ -247,7 +252,23 @@
     html=html.replace(/<script id="wrapt-state" type="application\/json">[\s\S]*?<\/script>/,'<script id="wrapt-state" type="application/json">'+json+'<\/script>');return '<!DOCTYPE html>\n'+html;}
   function fileName(){var co=(F.hostCompany||'Draft').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-');return 'Wrapt-Payout-'+co+(S.stage==='submitted'?'-SUBMITTED':'')+'.html';}
   function download(){var name=fileName();var blob=new Blob([serialize()],{type:'text/html'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},2000);return name;}
-  function mail(to,subject,body){window.location.href='mailto:'+encodeURIComponent(to||'')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);}
+  function mail(to,subject,body){
+    var href='mailto:'+encodeURIComponent(to||'')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+    try{var a=document.createElement('a');a.href=href;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},1000);}catch(e){}
+    var old=$('#mailbox');if(old)old.remove();
+    var box=document.createElement('div');box.className='mailbox';box.id='mailbox';
+    box.innerHTML='<b>If an email did not open, copy this into your email app:</b>'+
+      '<div><small>To:</small> <span id="mbTo"></span> &nbsp; <small>Subject:</small> <span id="mbSubj"></span></div>'+
+      '<pre id="mbBody"></pre>'+
+      '<button type="button" id="mbCopy">Copy email text</button><button type="button" id="mbCopyTo">Copy address</button>';
+    $('#banner').appendChild(box);
+    $('#mbTo').textContent=to||'(add the address)';$('#mbSubj').textContent=subject;$('#mbBody').textContent=body;
+    var copy=function(text,btn){var done=function(){btn.textContent='Copied';setTimeout(function(){btn.textContent=btn.dataset.l;},1500);};btn.dataset.l=btn.dataset.l||btn.textContent;
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,function(){fallback();});}else fallback();
+      function fallback(){var r=document.createRange();r.selectNodeContents($('#mbBody'));var s=window.getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand('copy');done();}catch(e){}}};
+    $('#mbCopy').addEventListener('click',function(){copy('Subject: '+subject+'\n\n'+body,this);});
+    $('#mbCopyTo').addEventListener('click',function(){copy(to||'',this);});
+  }
 
   $('#btnSave').addEventListener('click',function(){toast('Downloaded '+download());});
   $('#btnPrint').addEventListener('click',function(){window.print();});
@@ -282,6 +303,7 @@
     $('#banner').insertAdjacentHTML('afterbegin','<b style="color:var(--ok)">Downloaded '+esc(name)+'. Attach it to the email that just opened.</b>');
   });
   render();
+  try{localStorage.setItem('wrapt-test','1');localStorage.removeItem('wrapt-test');}catch(e){$('#banner').insertAdjacentHTML('afterbegin','<b style="color:#8a1c1c">This browser is not saving your work between visits. Use "Save a copy" before closing.</b>');}
 })();
 </script>
 </body>
