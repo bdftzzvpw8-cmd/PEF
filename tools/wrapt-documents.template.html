@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wrapt Documents</title>
+<meta name="description" content="Create custom proposals, agreements and payout forms for Wrapt prospects from one file.">
+<style>
+  /* Layout: prospect list on the left, prospect form and document tabs on the right, live preview below the form. */
+  :root{
+    --ink:#14212b; --ink-soft:#4c5a66; --line:#d5dee5; --paper:#ffffff; --wash:#eef3f6; --wash-2:#e2eaef;
+    --brand:#0b6e7a; --brand-deep:#08525b; --brand-soft:#d9eff1; --accent:#f0a83a; --ok:#1f7a4d; --danger:#9a2a2a;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--wash);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45}
+  button{font:inherit;cursor:pointer}
+  input,select,textarea{font:inherit;color:var(--ink)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .bar{position:sticky;top:0;z-index:20;background:var(--brand-deep);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+  .bar .t{font-weight:800;font-size:15px}
+  .bar .t small{font-weight:500;opacity:.75;margin-left:8px}
+  .bar .sp{flex:1}
+  .bar button{color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:7px;padding:7px 11px;font-weight:600;font-size:13px}
+  .bar button:hover{background:rgba(255,255,255,.24)}
+  .saved{font-size:12px;opacity:.85}
+
+  .app{display:grid;grid-template-columns:260px 1fr;gap:0;min-height:calc(100% - 52px)}
+  aside{background:var(--paper);border-right:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px}
+  aside h2,main h2{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--brand-deep)}
+  .plist{list-style:none;display:flex;flex-direction:column;gap:4px;overflow:auto;max-height:50vh}
+  .plist li button{width:100%;text-align:left;background:transparent;border:1px solid transparent;border-radius:8px;padding:8px 10px;color:var(--ink)}
+  .plist li button:hover{background:var(--wash)}
+  .plist li button.on{background:var(--brand-soft);border-color:var(--brand)}
+  .plist li button b{display:block;font-size:13.5px}
+  .plist li button span{font-size:12px;color:var(--ink-soft)}
+  .plist .empty{font-size:13px;color:var(--ink-soft);padding:8px 10px}
+  .btn{background:var(--brand);color:#fff;border:1px solid var(--brand);border-radius:8px;padding:9px 12px;font-weight:600;font-size:13px}
+  .btn:hover{background:var(--brand-deep)}
+  .btn.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+  .btn.ghost:hover{background:var(--wash)}
+  .btn.warn{background:#fff;color:var(--danger);border-color:var(--line)}
+  .btn.accent{background:var(--accent);color:#14212b;border-color:var(--accent)}
+  .btn.accent:hover{background:#f5b955}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .side-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto}
+  .side-actions .row{display:flex;gap:6px}
+  .side-actions .row .btn{flex:1}
+
+  main{padding:16px 20px 40px;min-width:0}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+  .card h2{margin-bottom:10px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 14px}
+  .f{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .f.w2{grid-column:span 2}.f.w4{grid-column:span 4}
+  .f label{font-size:11.5px;color:var(--ink-soft);letter-spacing:.02em}
+  .f input,.f select,.f textarea{border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:#fff;width:100%}
+  .f input:focus,.f select:focus,.f textarea:focus{border-color:var(--brand)}
+  .f textarea{min-height:58px;resize:vertical}
+  .f .hint{font-size:11px;color:var(--ink-soft)}
+  .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px}
+  .tabs button{background:transparent;border:0;border-bottom:3px solid transparent;padding:10px 14px;font-weight:600;color:var(--ink-soft);margin-bottom:-1px}
+  .tabs button.on{color:var(--brand-deep);border-bottom-color:var(--brand)}
+  .pane[hidden]{display:none}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 10px}
+  .actions .note{font-size:12px;color:var(--ink-soft)}
+  .preview{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .preview iframe{display:block;width:100%;height:900px;border:0;background:#fff}
+  .ptitle{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--wash-2);font-size:12px;color:var(--ink-soft)}
+  .msg{font-size:13px;padding:10px 12px;border-radius:8px;background:#fff8ec;border:1px solid #f1d9a6;margin-bottom:10px}
+  .msg.ok{background:#eaf7ef;border-color:#bfe3cc;color:var(--ok)}
+  .msg[hidden]{display:none}
+  #settingsCard[hidden]{display:none}
+  .empty-main{padding:40px 20px;text-align:center;color:var(--ink-soft)}
+  .empty-main b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr}
+    aside{border-right:0;border-bottom:1px solid var(--line)}
+    .plist{max-height:200px}
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .f.w4{grid-column:span 2}
+    main{padding:12px 12px 40px}
+    .preview iframe{height:600px}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <span class="t">Wrapt Documents<small>proposals · agreements · payout forms</small></span>
+  <span class="sp"></span>
+  <span class="saved" id="saved"></span>
+  <button type="button" id="btnSettings">Your business</button>
+  <button type="button" id="btnBackup">Backup</button>
+  <button type="button" id="btnRestore">Restore</button>
+  <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+</div>
+
+<div class="app">
+  <aside>
+    <h2>Prospects</h2>
+    <ul class="plist" id="plist"></ul>
+    <div class="side-actions">
+      <button type="button" class="btn" id="btnNew">+ New prospect</button>
+      <div class="row">
+        <button type="button" class="btn ghost" id="btnDup">Duplicate</button>
+        <button type="button" class="btn warn" id="btnDel">Delete</button>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="card" id="settingsCard" hidden>
+      <h2>Your business (appears on every document)</h2>
+      <div class="grid">
+        <div class="f"><label for="s_opName">Business name</label><input id="s_opName" data-s="opName"></div>
+        <div class="f"><label for="s_opEntity">Entity description</label><input id="s_opEntity" data-s="opEntity" placeholder="a Tennessee business"></div>
+        <div class="f w2"><label for="s_opAddress">Address (city, state is enough)</label><input id="s_opAddress" data-s="opAddress"></div>
+        <div class="f"><label for="s_opContact">Your name and title</label><input id="s_opContact" data-s="opContact" placeholder="Paige Fryer, Owner"></div>
+        <div class="f"><label for="s_opPhone">Phone</label><input id="s_opPhone" data-s="opPhone"></div>
+        <div class="f"><label for="s_opEmail">Email</label><input id="s_opEmail" data-s="opEmail" type="email"></div>
+        <div class="f"><label for="s_opWeb">Website</label><input id="s_opWeb" data-s="opWeb"></div>
+        <div class="f w2"><label for="s_installFee">Wrap installation fee ($)</label><input id="s_installFee" data-s="installFee" type="number" min="0" step="1"><span class="hint">Shown in proposals. The agreement text states $200; change both if this changes.</span></div>
+      </div>
+    </div>
+
+    <div id="noProspect" class="card empty-main"><b>No prospect selected</b>Click "+ New prospect" to start, or pick one from the list.</div>
+
+    <div id="editor" hidden>
+      <div class="card">
+        <h2>Prospect</h2>
+        <div class="grid">
+          <div class="f w2"><label for="p_company">Business name</label><input id="p_company" data-p="company" placeholder="Legacy Fit"></div>
+          <div class="f"><label for="p_short">Short name (used in sentences)</label><input id="p_short" data-p="short" placeholder="Legacy Fit or the Baymont"></div>
+          <div class="f"><label for="p_venue">Venue type</label><select id="p_venue" data-p="venue"></select></div>
+          <div class="f"><label for="p_contact">Contact name</label><input id="p_contact" data-p="contact"></div>
+          <div class="f"><label for="p_title">Title</label><input id="p_title" data-p="title"></div>
+          <div class="f"><label for="p_email">Email</label><input id="p_email" data-p="email" type="email"></div>
+          <div class="f"><label for="p_phone">Phone</label><input id="p_phone" data-p="phone"></div>
+          <div class="f w2"><label for="p_address">Address</label><input id="p_address" data-p="address" placeholder="street, city, state"></div>
+          <div class="f w2"><label for="p_notes">Private notes (never printed)</label><input id="p_notes" data-p="notes" placeholder="who said yes, what they reacted to"></div>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button type="button" data-tab="proposal" class="on" role="tab">Proposal</button>
+        <button type="button" data-tab="agreement" role="tab">Agreement</button>
+        <button type="button" data-tab="payout" role="tab">Payout form</button>
+      </div>
+
+      <div class="msg" id="msg" hidden></div>
+
+      <section class="pane" id="pane-proposal">
+        <div class="card">
+          <h2>Proposal wording <span class="hint" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-soft)">· filled from the venue type, edit freely</span></h2>
+          <div class="grid">
+            <div class="f w4"><label for="p_lead">Opening paragraph</label><textarea id="p_lead" data-p="lead"></textarea></div>
+            <div class="f w2"><label for="p_mix">Product mix</label><textarea id="p_mix" data-p="mix"></textarea></div>
+            <div class="f w2"><label for="p_spot">What we need from them</label><textarea id="p_spot" data-p="spot"></textarea></div>
+            <div class="f w2"><label for="p_approval">Agreement note (who signs)</label><textarea id="p_approval" data-p="approval"></textarea></div>
+            <div class="f"><label for="p_who">Their people are called</label><input id="p_who" data-p="who" placeholder="members, guests, residents"></div>
+            <div class="f"><label for="p_pdate">Proposal date</label><input id="p_pdate" data-p="pdate" type="date"></div>
+          </div>
+          <div class="actions">
+            <button type="button" class="btn ghost" id="btnVenueReset">Reset wording to venue default</button>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn accent" id="dlProposal">Download proposal</button>
+          <button type="button" class="btn" id="mailProposal">Email proposal</button>
+          <button type="button" class="btn ghost" id="printProposal">Print / PDF</button>
+          <span class="note">"Email proposal" downloads the file and opens a cover email; attach the file.</span>
+        </div>
+        <div class="preview"><div class="ptitle"><span>Preview</span><span id="proposalName"></span></div><iframe id="fr-proposal" title="Proposal preview"></iframe></div>
+      </section>
+
+      <section class="pane" id="pane-agreement" hidden>
+        <div class="card">
+          <h2>Agreement terms</h2>
+          <div class="grid">
+            <div class="f"><label for="p_effectiveDate">Effective date</label><input id="p_effectiveDate" data-p="effectiveDate" type="date"></div>
+            <div class="f"><label for="p_coolers">Number of coolers</label><input id="p_coolers" data-p="coolers" type="number" min="1" max="20"></div>
+            <div class="f"><label for="p_commission">Commission %</label><input id="p_commission" data-p="commission" type="number" min="0" max="100" step="0.5" placeholder="agreed on walkthrough"></div>
+            <div class="f"><label for="p_termYears">Initial term</label><select id="p_termYears" data-p="termYears"><option value="3">3 years</option><option value="4">4 years</option><option value="5">5 years</option></select></div>
+            <div class="f"><label for="p_wrap">Custom wrap</label><select id="p_wrap" data-p="wrap"><option value="no">No</option><option value="yes">Yes</option></select></div>
+            <div class="f"><label for="p_wrapFee">Wrap cost ($)</label><input id="p_wrapFee" data-p="wrapFee" type="number" min="0" step="1"></div>
+            <div class="f w2"><label for="p_extraTerms">Additional terms (optional)</label><textarea id="p_extraTerms" data-p="extraTerms" placeholder="placement spot, product requests, access hours"></textarea></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn accent" id="dlAgreement">Download agreement for signing</button>
+          <button type="button" class="btn ghost" id="printAgreement">Print / PDF</button>
+          <span class="note">The download is the fill-and-sign file, prefilled. Open it, sign, and click "Send to host" there.</span>
+        </div>
+        <div class="preview"><div class="ptitle"><span>Preview (read-only here; use the downloaded file to sign)</span><span id="agreementName"></span></div><iframe id="fr-agreement" title="Agreement preview"></iframe></div>
+      </section>
+
+      <section class="pane" id="pane-payout" hidden>
+        <div class="actions">
+          <button type="button" class="btn accent" id="dlPayout">Download payout form</button>
+          <button type="button" class="btn ghost" id="printPayout">Print / PDF</button>
+          <span class="note">Prefilled with the prospect and your email. Open the download and click "Send to host" there.</span>
+        </div>
+        <div class="preview"><div class="ptitle"><span>Preview</span><span id="payoutName"></span></div><iframe id="fr-payout" title="Payout form preview"></iframe></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script id="tpl-agreement" type="application/json">__AGREEMENT_TPL__</script>
+<script id="tpl-payout" type="application/json">__PAYOUT_TPL__</script>
+
+<script>
+(function(){
+  'use strict';
+  var $=function(s,r){return (r||document).querySelector(s);};
+  var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+  var uid=function(p){return p+'-'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);};
+  var today=function(){var d=new Date(),z=function(n){return (n<10?'0':'')+n;};return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());};
+  var fmtDate=function(iso){if(!iso)return '';var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);if(!m)return iso;return ['January','February','March','April','May','June','July','August','September','October','November','December'][+m[2]-1]+' '+(+m[3])+', '+m[1];};
+  var firstName=function(s){return (s||'').trim().split(/\s+/)[0]||'there';};
+
+  /* ---------- venue defaults ---------- */
+  var VENUES={
+    'Gym & fitness':{who:'members',lead:'Members grab a protein shake, electrolyte drink or cold water on the way out. They tap a card, take what they want and walk off. No front-desk time, no cash, no coins.',mix:'Protein shakes, electrolyte and recovery drinks, cold water, energy drinks and grab-and-go protein snacks. Tell us what your members ask for and we stock it.',spot:'A spot near the exit or front desk with a standard wall outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'},
+    'Hotel':{who:'guests',lead:'Guests grab drinks and snacks at any hour. They tap a card, take what they want and it checks out on its own. It reads as your amenity, and the front desk never has to touch it.',mix:'Cold drinks, sparkling water, coffee drinks, snacks and late-night essentials. Travelers buy what they forgot to pack.',spot:'A spot in the lobby or near the elevators with a standard wall outlet.',approval:'The agreement is two pages. If the owner or management company needs to sign off, I am glad to send it to them directly.'},
+    'Apartment community':{who:'residents',lead:'A 24/7 resident amenity for the lobby, clubroom or mail room. Residents tap a card, take a drink or snack, and it checks out on its own. Your team never handles money or restocking.',mix:'Cold drinks, sparkling water, coffee drinks, snacks and a few household basics residents run out of.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is two pages. If the management company needs to approve a vendor, tell me who to send it to and I will take that off your plate.'},
+    'Senior living':{who:'residents, families and staff',lead:'A 24/7 resident amenity for the lobby or clubroom. Residents, families and staff tap a card, take a drink or snack, and it checks out on its own. Your team never handles money or restocking.',mix:'Waters, juices, coffee drinks, and snacks residents and visiting families like. We choose the mix with you and adjust it as we see what sells.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is two pages. If corporate or your regional office needs to approve a vendor, tell me who to send it to and I will take that off your plate.'},
+    'Office / coworking':{who:'employees and tenants',lead:'Employees and tenants get cold drinks and snacks without leaving the building. They tap a card, take what they want and it checks out on its own. Nothing for your team to manage.',mix:'Cold drinks, sparkling water, coffee and energy drinks, and snacks for the afternoon slump.',spot:'A spot in the break room or lobby with a standard wall outlet.',approval:'The agreement is two pages. If facilities or the building owner needs to sign off, I am glad to send it to them directly.'},
+    'Dealership / auto repair':{who:'customers',lead:'Customers waiting on you can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the wait better and costs you nothing.',mix:'Cold drinks, coffee drinks, water and snacks for people waiting on a car.',spot:'A spot in the waiting area with a standard wall outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'},
+    'Laundromat':{who:'customers',lead:'Customers waiting on a load can grab a cold drink or snack themselves. They tap a card, take what they want and it checks out on its own. No change machine, no cash, nothing for you to handle.',mix:'Cold drinks, water, snacks and a few laundry basics people forget to bring.',spot:'A spot along a wall near the seating with a standard outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'},
+    'Medical / clinic / vet':{who:'patients and visitors',lead:'Patients and visitors waiting on you can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the wait better and costs you nothing.',mix:'Water, juices, coffee drinks and light snacks suited to a waiting room.',spot:'A spot in the waiting area with a standard wall outlet.',approval:'The agreement is two pages. If the practice owner or administrator needs to sign, I am glad to send it to them directly.'},
+    'Salon / beauty / tattoo':{who:'clients',lead:'Clients in the chair or waiting can grab a drink or snack themselves. They tap a card, take what they want and it checks out on its own. It makes the visit nicer and costs you nothing.',mix:'Sparkling water, cold drinks, coffee drinks and light snacks.',spot:'A spot near the waiting area with a standard wall outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'},
+    'Church / school / youth':{who:'visitors and families',lead:'Visitors and families can grab a drink or snack anytime. They tap a card, take what they want and it checks out on its own. No staff time, no cash handling.',mix:'Water, juices, cold drinks and family-friendly snacks.',spot:'A spot in a lobby or common area with a standard wall outlet.',approval:'The agreement is two pages. If a board or administrator needs to approve it, tell me who to send it to.'},
+    'Entertainment / golf':{who:'guests',lead:'Guests can grab a cold drink or snack between rounds or events. They tap a card, take what they want and it checks out on its own. No staff time, no cash handling.',mix:'Cold drinks, sports drinks, water and grab-and-go snacks.',spot:'A spot near the entrance or turn with a standard wall outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'},
+    'Other':{who:'customers and staff',lead:'Customers and staff can grab a cold drink or snack anytime. They tap a card, take what they want and it checks out on its own.',mix:'Cold drinks, water, coffee drinks and snacks, chosen with you and adjusted as we see what sells.',spot:'A spot in a common area with a standard wall outlet.',approval:'The agreement is two pages. I will bring it with me and walk you through it.'}
+  };
+
+  /* ---------- state ---------- */
+  var LS='wrapt-documents';
+  var DEFAULT_SETTINGS={opName:'Wrapt',opEntity:'a Tennessee business',opAddress:'Franklin, Tennessee',opContact:'Paige Fryer, Owner',opPhone:'615.948.2976',opEmail:'paige@wraptvending.com',opWeb:'wraptvending.com',installFee:'200'};
+  var D={settings:{},prospects:[],currentId:null,tab:'proposal'};
+  try{var raw=localStorage.getItem(LS);if(raw){var j=JSON.parse(raw);if(j&&j.prospects)D=j;}}catch(e){}
+  for(var k in DEFAULT_SETTINGS)if(D.settings[k]==null)D.settings[k]=DEFAULT_SETTINGS[k];
+  var SET=D.settings;
+  function cur(){for(var i=0;i<D.prospects.length;i++)if(D.prospects[i].id===D.currentId)return D.prospects[i];return null;}
+  function blankProspect(){var v='Gym & fitness',d=VENUES[v];return {id:uid('p'),company:'',short:'',venue:v,contact:'',title:'',email:'',phone:'',address:'',notes:'',who:d.who,lead:d.lead,mix:d.mix,spot:d.spot,approval:d.approval,pdate:today(),effectiveDate:'',coolers:'1',commission:'',termYears:'3',wrap:'no',wrapFee:'',extraTerms:'',createdAt:new Date().toISOString()};}
+  var saveT;
+  function save(){D.settings=SET;try{localStorage.setItem(LS,JSON.stringify(D));}catch(e){}var s=$('#saved');s.textContent='Saved';clearTimeout(saveT);saveT=setTimeout(function(){s.textContent='';},1200);}
+  function toast(m,ok){var el=$('#msg');el.textContent=m;el.hidden=false;el.className='msg'+(ok?' ok':'');clearTimeout(toast.t);toast.t=setTimeout(function(){el.hidden=true;},6000);}
+
+  /* ---------- document generators ---------- */
+  function shortOf(p){return (p.short||p.company||'your location').trim();}
+  function capFirst(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+  function proposalHTML(p){
+    var co=p.company||'your location',short=shortOf(p),fee=SET.installFee||'200';
+    return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>'+esc(SET.opName)+' Proposal for '+esc(co)+'</title>\n<style>\n'+
+'  :root{--ink:#14212b;--ink-soft:#4c5a66;--line:#dfe5ea;--paper:#ffffff;--wash:#f3f7f9;--brand:#0b6e7a;--brand-deep:#08525b;--brand-soft:#d9eff1;--accent:#f0a83a;}\n'+
+'  *{box-sizing:border-box;margin:0;padding:0}\n  html,body{background:var(--wash);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}\n'+
+'  .sheet{max-width:820px;margin:32px auto;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(20,33,43,.08)}\n'+
+'  header{background:var(--brand-deep);color:#fff;padding:36px 48px 30px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}\n'+
+'  .logo{font-size:30px;font-weight:800;letter-spacing:.02em;line-height:1}\n  .logo small{display:block;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;opacity:.75;margin-top:8px}\n'+
+'  .meta{text-align:right;font-size:13px;opacity:.9}\n  .meta b{display:block;font-size:15px;font-weight:600;opacity:1}\n'+
+'  .hero{padding:36px 48px 8px}\n  .eyebrow{color:var(--brand);font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}\n'+
+'  h1{font-size:30px;line-height:1.15;font-weight:800;margin:8px 0 14px}\n  .hero p{font-size:17px;color:var(--ink-soft);max-width:60ch}\n'+
+'  section{padding:26px 48px;border-top:1px solid var(--line)}\n  h2{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);margin-bottom:14px}\n'+
+'  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}\n  .step{background:var(--wash);border-radius:10px;padding:18px 18px 16px}\n'+
+'  .step .n{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;margin-bottom:10px}\n'+
+'  .step h3{font-size:16px;margin-bottom:4px}\n  .step p{font-size:14px;color:var(--ink-soft)}\n'+
+'  .split{display:grid;grid-template-columns:1.1fr .9fr;gap:32px}\n  ul{list-style:none}\n  li{position:relative;padding-left:26px;margin-bottom:10px;font-size:15px}\n'+
+'  li::before{content:"";position:absolute;left:0;top:7px;width:14px;height:14px;border-radius:50%;background:var(--brand-soft);border:2px solid var(--brand)}\n'+
+'  .big{display:flex;flex-direction:column;gap:4px;background:var(--brand-soft);border-radius:10px;padding:16px 20px;margin-top:6px}\n'+
+'  .big .pct{font-size:22px;font-weight:800;color:var(--brand-deep);line-height:1.2}\n  .big span{font-size:14px;color:var(--ink-soft)}\n'+
+'  .note{background:#fff8ec;border-left:4px solid var(--accent);padding:14px 18px;border-radius:0 8px 8px 0;font-size:15px}\n'+
+'  .cta{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;background:var(--brand-deep);color:#fff;padding:28px 48px}\n'+
+'  .cta h2{color:#fff;opacity:.8;margin-bottom:6px}\n  .cta p{font-size:17px;max-width:48ch}\n'+
+'  .cta a.btn{display:inline-block;background:var(--accent);color:var(--ink);font-weight:700;text-decoration:none;padding:14px 22px;border-radius:8px;white-space:nowrap}\n'+
+'  footer{padding:22px 48px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:14px;color:var(--ink-soft)}\n  footer b{color:var(--ink)}\n  footer a{color:var(--brand);text-decoration:none}\n'+
+'  @media (max-width:640px){header,.hero,section,.cta,footer{padding-left:20px;padding-right:20px}.sheet{margin:0;border-radius:0;border:0}.steps,.split{grid-template-columns:1fr}.meta{text-align:left}h1{font-size:26px}}\n'+
+'  @media print{html,body{background:#fff}.sheet{margin:0;max-width:none;border:0;border-radius:0;box-shadow:none}header,.cta,.step,.big,.note{-webkit-print-color-adjust:exact;print-color-adjust:exact}section{break-inside:avoid}@page{margin:0.5in}}\n'+
+'</style>\n</head>\n<body>\n<div class="sheet">\n'+
+'  <header>\n    <div class="logo">'+esc(SET.opName)+'<small>Smart cooler placement</small></div>\n    <div class="meta"><b>Prepared for '+esc(co)+'</b>'+esc(p.venue)+' · '+esc(fmtDate(p.pdate||today()))+'</div>\n  </header>\n'+
+'  <div class="hero">\n    <div class="eyebrow">Proposal</div>\n    <h1>A free AI smart cooler for '+esc(co)+'</h1>\n    <p>'+esc(p.lead)+'</p>\n  </div>\n'+
+'  <section>\n    <h2>How it works</h2>\n    <div class="steps">\n'+
+'      <div class="step"><div class="n">1</div><h3>We install it</h3><p>We deliver and set up the cooler at no cost. You choose the spot, we handle the rest.</p></div>\n'+
+'      <div class="step"><div class="n">2</div><h3>We stock and service it</h3><p>Every week. Your team never restocks, never handles cash, never fields a refund.</p></div>\n'+
+'      <div class="step"><div class="n">3</div><h3>You earn on every sale</h3><p>'+esc(capFirst(short))+' earns a share of every sale after a 90-day trial, paid monthly with a statement.</p></div>\n'+
+'    </div>\n  </section>\n'+
+'  <section>\n    <div class="split">\n      <div>\n        <h2>What '+esc(short)+' gets</h2>\n        <ul>\n'+
+'          <li>The cooler, installed by us, at no cost.</li>\n'+
+'          <li>Weekly stocking and service. Nothing for your team to manage.</li>\n'+
+'          <li>A product mix built for your '+esc(p.who||'people')+'. '+esc(p.mix)+'</li>\n'+
+'          <li>Tap-to-pay checkout. No cash, no coins, no lines.</li>\n'+
+'          <li>Optional custom wrap in your branding, so the cooler looks like part of '+esc(short)+'. We front the wrap and a $'+esc(fee)+' install fee and recover them from your commission before payouts begin.</li>\n'+
+'        </ul>\n      </div>\n      <div>\n        <h2>Your share</h2>\n'+
+'        <div class="big"><span class="pct">A share of every sale</span><span>Paid monthly with a statement, starting after a 90-day trial period. Commission is paid for each month the cooler sells $1,000 or more. We agree the rate together on the walkthrough.</span></div>\n'+
+'        <h2 style="margin-top:22px">What we need</h2>\n        <p style="font-size:15px">'+esc(p.spot)+'</p>\n      </div>\n    </div>\n  </section>\n'+
+'  <section>\n    <h2>The agreement</h2>\n    <div class="note">'+esc(p.approval)+'</div>\n  </section>\n'+
+'  <div class="cta">\n    <div>\n      <h2>Next step</h2>\n      <p>A 10-minute walk of the space is all it takes. I will bring the agreement and we can pick the spot together.</p>\n    </div>\n'+
+'    <a class="btn" href="tel:'+esc((SET.opPhone||'').replace(/[^\d+]/g,''))+'">Call or text '+esc(firstName(SET.opContact))+' · '+esc(SET.opPhone)+'</a>\n  </div>\n'+
+'  <footer>\n    <div><b>'+esc((SET.opContact||'').split(',')[0])+'</b><br>'+esc(((SET.opContact||'').split(',')[1]||'').trim())+(SET.opContact&&SET.opContact.indexOf(',')>0?', ':'')+esc(SET.opName)+' · '+esc(SET.opAddress)+'</div>\n'+
+'    <div style="text-align:right"><a href="tel:'+esc((SET.opPhone||'').replace(/[^\d+]/g,''))+'">'+esc(SET.opPhone)+'</a><br><a href="mailto:'+esc(SET.opEmail)+'">'+esc(SET.opEmail)+'</a><br><a href="https://'+esc(SET.opWeb)+'">'+esc(SET.opWeb)+'</a></div>\n'+
+'  </footer>\n</div>\n</body>\n</html>\n';
+  }
+
+  var TPL_AGREEMENT=JSON.parse($('#tpl-agreement').textContent);
+  var TPL_PAYOUT=JSON.parse($('#tpl-payout').textContent);
+  var STATE_RE=/<script id="wrapt-state" type="application\/json">[\s\S]*?<\/script>/;
+  function inject(tpl,state){var json=JSON.stringify(state).replace(/</g,'\\u003c');return tpl.replace(STATE_RE,function(){return '<script id="wrapt-state" type="application/json">'+json+'<\/script>';});}
+  function agreementHTML(p){
+    return inject(TPL_AGREEMENT,{v:1,id:uid('wa'),stage:'draft',updatedAt:'',fields:{
+      opName:SET.opName,opEntity:SET.opEntity,opAddress:SET.opAddress,opContact:SET.opContact,opPhone:SET.opPhone,opEmail:SET.opEmail,opWeb:SET.opWeb,
+      effectiveDate:p.effectiveDate||'',hostCompany:p.company||'',hostAddress:p.address||'',hostContact:p.contact||'',hostTitle:p.title||'',hostPhone:p.phone||'',hostEmail:p.email||'',
+      coolers:p.coolers||'1',commission:p.commission||'',termYears:p.termYears||'3',wrap:p.wrap||'no',wrapFee:p.wrapFee||'',extraTerms:p.extraTerms||''},sigOp:null,sigHost:null});
+  }
+  function payoutHTML(p){
+    return inject(TPL_PAYOUT,{v:1,id:uid('wp'),stage:'draft',updatedAt:'',fields:{
+      opName:SET.opName,opAddress:SET.opAddress,opContact:SET.opContact,opPhone:SET.opPhone,opEmail:SET.opEmail,opWeb:SET.opWeb,
+      hostCompany:p.company||'',hostContact:p.contact||'',hostEmail:p.email||'',
+      payeeName:'',payeeDba:'',payeeType:'business',method:'deposit',addr1:'',addr2:'',stmtName:'',stmtEmail:'',stmtPhone:'',qbEmail:'',notes:'',subName:'',subTitle:'',subDate:''}});
+  }
+  function slug(s){return (s||'Draft').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-')||'Draft';}
+  function download(name,html){var blob=new Blob([html],{type:'text/html'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},2000);return name;}
+
+  /* ---------- rendering ---------- */
+  function renderList(){
+    var ul=$('#plist');ul.innerHTML='';
+    if(!D.prospects.length){ul.innerHTML='<li class="empty">No prospects yet.</li>';return;}
+    D.prospects.slice().sort(function(a,b){return (a.company||'').localeCompare(b.company||'');}).forEach(function(p){
+      var li=document.createElement('li');var b=document.createElement('button');b.type='button';b.className=p.id===D.currentId?'on':'';
+      b.innerHTML='<b>'+esc(p.company||'(unnamed)')+'</b><span>'+esc(p.venue)+(p.contact?' · '+esc(p.contact):'')+'</span>';
+      b.addEventListener('click',function(){D.currentId=p.id;save();renderAll();});li.appendChild(b);ul.appendChild(li);
+    });
+  }
+  function renderSettings(){$$('[data-s]').forEach(function(el){el.value=SET[el.dataset.s]||'';});}
+  function renderEditor(){
+    var p=cur();$('#noProspect').hidden=!!p;$('#editor').hidden=!p;$('#btnDup').disabled=!p;$('#btnDel').disabled=!p;
+    if(!p)return;
+    var vs=$('#p_venue');if(!vs.options.length){Object.keys(VENUES).forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;vs.appendChild(o);});}
+    $$('[data-p]').forEach(function(el){var v=p[el.dataset.p];el.value=v==null?'':v;});
+    $$('.tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.tab===D.tab);});
+    $$('.pane').forEach(function(s){s.hidden=s.id!=='pane-'+D.tab;});
+    renderPreview();
+  }
+  var prevT;
+  function renderPreview(){
+    clearTimeout(prevT);prevT=setTimeout(function(){
+      var p=cur();if(!p)return;
+      if(D.tab==='proposal'){$('#fr-proposal').srcdoc=proposalHTML(p);$('#proposalName').textContent=SET.opName+'-Proposal-'+slug(p.company)+'.html';}
+      else if(D.tab==='agreement'){$('#fr-agreement').srcdoc=agreementHTML(p);$('#agreementName').textContent=SET.opName+'-Agreement-'+slug(p.company)+'.html';}
+      else{$('#fr-payout').srcdoc=payoutHTML(p);$('#payoutName').textContent=SET.opName+'-Payout-'+slug(p.company)+'.html';}
+    },250);
+  }
+  function renderAll(){renderList();renderSettings();renderEditor();}
+
+  /* ---------- events ---------- */
+  document.addEventListener('input',function(e){
+    var el=e.target;
+    if(el.dataset&&el.dataset.s){SET[el.dataset.s]=el.value;save();renderPreview();}
+    else if(el.dataset&&el.dataset.p){var p=cur();if(!p)return;p[el.dataset.p]=el.value;
+      if(el.dataset.p==='company'){renderList();if(!$('#p_short').dataset.touched)$('#p_short').placeholder=el.value;}
+      if(el.dataset.p==='short')$('#p_short').dataset.touched='1';
+      save();renderPreview();}
+  });
+  document.addEventListener('change',function(e){
+    var el=e.target;if(!(el.dataset&&el.dataset.p))return;var p=cur();if(!p)return;p[el.dataset.p]=el.value;
+    if(el.dataset.p==='venue'){applyVenue(p,true);}
+    save();renderEditor();
+  });
+  function applyVenue(p,onlyIfDefault){
+    var d=VENUES[p.venue]||VENUES.Other;
+    // when switching venue, replace wording that still matches some venue default; keep custom edits
+    var isDefault=function(field){for(var v in VENUES)if(VENUES[v][field]===p[field])return true;return !p[field];};
+    ['who','lead','mix','spot','approval'].forEach(function(f){if(!onlyIfDefault||isDefault(f))p[f]=d[f];});
+  }
+  $('#btnVenueReset').addEventListener('click',function(){var p=cur();if(!p)return;applyVenue(p,false);save();renderEditor();toast('Wording reset to the '+p.venue+' default.',true);});
+  $$('.tabs button').forEach(function(b){b.addEventListener('click',function(){D.tab=b.dataset.tab;save();renderEditor();});});
+  $('#btnSettings').addEventListener('click',function(){var c=$('#settingsCard');c.hidden=!c.hidden;if(!c.hidden)$('#s_opName').focus();});
+  $('#btnNew').addEventListener('click',function(){var p=blankProspect();D.prospects.push(p);D.currentId=p.id;D.tab='proposal';save();renderAll();$('#p_company').focus();});
+  $('#btnDup').addEventListener('click',function(){var p=cur();if(!p)return;var c=JSON.parse(JSON.stringify(p));c.id=uid('p');c.company=(p.company||'')+' (copy)';c.createdAt=new Date().toISOString();D.prospects.push(c);D.currentId=c.id;save();renderAll();});
+  $('#btnDel').addEventListener('click',function(){var p=cur();if(!p)return;var b=$('#btnDel');
+    if(!b.dataset.armed){b.dataset.armed='1';b.textContent='Click again to delete';setTimeout(function(){delete b.dataset.armed;b.textContent='Delete';},3000);return;}
+    D.prospects=D.prospects.filter(function(x){return x.id!==p.id;});D.currentId=D.prospects.length?D.prospects[0].id:null;delete b.dataset.armed;b.textContent='Delete';save();renderAll();});
+
+  $('#dlProposal').addEventListener('click',function(){var p=cur();if(!p)return;toast('Downloaded '+download(SET.opName+'-Proposal-'+slug(p.company)+'.html',proposalHTML(p)),true);});
+  $('#dlAgreement').addEventListener('click',function(){var p=cur();if(!p)return;toast('Downloaded '+download(SET.opName+'-Agreement-'+slug(p.company)+'.html',agreementHTML(p))+'. Open it, sign, and click "Send to host".',true);});
+  $('#dlPayout').addEventListener('click',function(){var p=cur();if(!p)return;toast('Downloaded '+download(SET.opName+'-Payout-'+slug(p.company)+'.html',payoutHTML(p))+'. Open it and click "Send to host".',true);});
+  function printFrame(id){var fr=$(id);try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){toast('Open the downloaded file and print from there.');}}
+  $('#printProposal').addEventListener('click',function(){printFrame('#fr-proposal');});
+  $('#printAgreement').addEventListener('click',function(){printFrame('#fr-agreement');});
+  $('#printPayout').addEventListener('click',function(){printFrame('#fr-payout');});
+  $('#mailProposal').addEventListener('click',function(){
+    var p=cur();if(!p)return;if(!p.email){toast('Add the contact email first.');$('#p_email').focus();return;}
+    var name=download(SET.opName+'-Proposal-'+slug(p.company)+'.html',proposalHTML(p));
+    var me=firstName(SET.opContact);
+    var body='Hi '+firstName(p.contact)+',\n\nThanks for taking the call from our team. As promised, the proposal for '+(p.company||'your location')+' is attached.\n\n'+
+      'In short: we place an AI smart cooler at no cost, install it, stock it and service it every week. '+capFirst(shortOf(p))+' earns a share of every sale after a 90-day trial, paid monthly with a statement.\n\n'+
+      p.spot+'\n\n'+p.approval+'\n\nCan I stop by this week for a 10-minute look at the space?\n\n'+SET.opContact+'\n'+SET.opName+'\n'+SET.opPhone+' · '+SET.opWeb;
+    window.location.href='mailto:'+encodeURIComponent(p.email)+'?subject='+encodeURIComponent('Proposal: a free smart cooler for '+(p.company||'your location'))+'&body='+encodeURIComponent(body);
+    toast('Downloaded '+name+'. Attach it to the email that just opened.',true);
+  });
+
+  $('#btnBackup').addEventListener('click',function(){var blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Wrapt-Documents-backup-'+today()+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},2000);toast('Backup downloaded. Keep it somewhere safe; this page stores prospects in this browser only.',true);});
+  $('#btnRestore').addEventListener('click',function(){$('#restoreFile').click();});
+  $('#restoreFile').addEventListener('change',function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var j=JSON.parse(r.result);if(!j||!j.prospects)throw 0;D=j;SET=D.settings||{};for(var k in DEFAULT_SETTINGS)if(SET[k]==null)SET[k]=DEFAULT_SETTINGS[k];D.settings=SET;save();renderAll();toast('Backup restored: '+D.prospects.length+' prospect(s).',true);}catch(e){toast('That file is not a Wrapt Documents backup.');}};r.readAsText(f);this.value='';});
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
