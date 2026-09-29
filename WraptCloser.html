@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wrapt Documents</title>
+<title>WraptCloser</title>
 <meta name="description" content="Create custom proposals, agreements and payout forms for Wrapt prospects from one file.">
 <style>
   /* Layout: prospect list on the left, prospect form and document tabs on the right, live preview below the form. */
@@ -92,7 +92,7 @@
 <body>
 
 <div class="bar">
-  <span class="t">Wrapt Documents<small>proposals · agreements · payout forms</small></span>
+  <span class="t">WraptCloser<small>proposals · agreements · payout forms</small></span>
   <span class="sp"></span>
   <span class="saved" id="saved"></span>
   <button type="button" id="btnSettings">Your business</button>
@@ -407,9 +407,9 @@
     toast('Downloaded '+name+'. Attach it to the email that just opened.',true);
   });
 
-  $('#btnBackup').addEventListener('click',function(){var blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Wrapt-Documents-backup-'+today()+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},2000);toast('Backup downloaded. Keep it somewhere safe; this page stores prospects in this browser only.',true);});
+  $('#btnBackup').addEventListener('click',function(){var blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='WraptCloser-backup-'+today()+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},2000);toast('Backup downloaded. Keep it somewhere safe; this page stores prospects in this browser only.',true);});
   $('#btnRestore').addEventListener('click',function(){$('#restoreFile').click();});
-  $('#restoreFile').addEventListener('change',function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var j=JSON.parse(r.result);if(!j||!j.prospects)throw 0;D=j;SET=D.settings||{};for(var k in DEFAULT_SETTINGS)if(SET[k]==null)SET[k]=DEFAULT_SETTINGS[k];D.settings=SET;save();renderAll();toast('Backup restored: '+D.prospects.length+' prospect(s).',true);}catch(e){toast('That file is not a Wrapt Documents backup.');}};r.readAsText(f);this.value='';});
+  $('#restoreFile').addEventListener('change',function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var j=JSON.parse(r.result);if(!j||!j.prospects)throw 0;D=j;SET=D.settings||{};for(var k in DEFAULT_SETTINGS)if(SET[k]==null)SET[k]=DEFAULT_SETTINGS[k];D.settings=SET;save();renderAll();toast('Backup restored: '+D.prospects.length+' prospect(s).',true);}catch(e){toast('That file is not a WraptCloser backup.');}};r.readAsText(f);this.value='';});
 
   renderAll();
 })();
