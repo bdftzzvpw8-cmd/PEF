@@ -96,7 +96,7 @@
 </head>
 <body>
 
-<script id="wrapt-state" type="application/json">{"v":1,"id":"","stage":"draft","updatedAt":"","fields":{"opName":"Wrapt","opAddress":"Franklin, Tennessee","opContact":"Paige Fryer, Owner","opPhone":"615.948.2976","opEmail":"paige@wraptvending.com","opWeb":"wraptvending.com","hostCompany":"","hostContact":"","hostEmail":"","payeeName":"","payeeDba":"","payeeType":"business","method":"deposit","addr1":"","addr2":"","stmtName":"","stmtEmail":"","stmtPhone":"","qbEmail":"","notes":"","subName":"","subTitle":"","subDate":""}}</script>
+<script id="wrapt-state" type="application/json">{"v":1,"id":"","stage":"draft","updatedAt":"","fields":{"opName":"Wrapt","opLegal":"Wrapt Intelligence LLC","opAddress":"Franklin, Tennessee","opContact":"Paige Fryer, Owner","opPhone":"615.948.2976","opEmail":"paige@wraptvending.com","opWeb":"wraptvending.com","hostCompany":"","hostContact":"","hostEmail":"","payeeName":"","payeeDba":"","payeeType":"business","method":"deposit","addr1":"","addr2":"","stmtName":"","stmtEmail":"","stmtPhone":"","qbEmail":"","notes":"","subName":"","subTitle":"","subDate":""}}</script>
 
 <div class="bar" role="toolbar" aria-label="Payout form actions">
   <span class="t">Wrapt Payout Setup</span>
@@ -197,7 +197,7 @@
   if(!S.id)S.id='wp-'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
   var LS='wrapt-payout-'+S.id;
   try{var c=localStorage.getItem(LS);if(c){c=JSON.parse(c);if(c&&c.updatedAt&&(!S.updatedAt||c.updatedAt>S.updatedAt))S=c;}}catch(e){}
-  var F=S.fields;
+  var F=S.fields;var _def=JSON.parse(stateEl.textContent).fields;for(var _k in _def)if(F[_k]==null)F[_k]=_def[_k];
   var fields=$$('[data-k]'),radios=$$('[data-r]'),shows=$$('[data-show]');
   function today(){var d=new Date(),p=function(n){return (n<10?'0':'')+n;};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
   function esc(s){return String(s).replace(/[&<>"]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch];});}
@@ -286,7 +286,7 @@
     S.stage='sent';render();save();var name=download();
     var body='Hi '+(F.hostContact?F.hostContact.split(' ')[0]:'there')+',\n\nSo we can pay your commission for '+F.hostCompany+', please complete the attached payout form.\n\n'+
       '1. Open the attached file in any web browser.\n2. Fill in sections 1 to 5. Do not enter bank details on the form.\n3. Click "Submit to Wrapt" and attach the downloaded file to your reply.\n\n'+
-      'For direct deposit, you will then get a QuickBooks invitation to add your bank account and W-9 securely.\n\n'+F.opContact+'\n'+F.opName+'\n'+F.opPhone;
+      'For direct deposit, you will then get a QuickBooks invitation to add your bank account and W-9 securely.\n\n'+F.opContact+'\n'+(F.opLegal||F.opName)+'\n'+F.opPhone;
     mail(F.hostEmail,F.opName+' commission payout setup for '+F.hostCompany,body);
     $('#banner').insertAdjacentHTML('afterbegin','<b style="color:var(--ok)">Downloaded '+esc(name)+'. Attach it to the email that just opened.</b>');
   });

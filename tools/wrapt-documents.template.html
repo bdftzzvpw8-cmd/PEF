@@ -120,8 +120,9 @@
     <div class="card" id="settingsCard" hidden>
       <h2>Your business (appears on every document)</h2>
       <div class="grid">
-        <div class="f"><label for="s_opName">Business name</label><input id="s_opName" data-s="opName"></div>
-        <div class="f"><label for="s_opEntity">Entity description</label><input id="s_opEntity" data-s="opEntity" placeholder="a Tennessee business"></div>
+        <div class="f"><label for="s_opName">Brand name (headers, logos)</label><input id="s_opName" data-s="opName"></div>
+        <div class="f"><label for="s_opLegal">Legal name (agreements, signatures)</label><input id="s_opLegal" data-s="opLegal"></div>
+        <div class="f w2"><label for="s_opEntity">Entity description</label><input id="s_opEntity" data-s="opEntity" placeholder="a Tennessee limited liability company"></div>
         <div class="f w2"><label for="s_opAddress">Address (city, state is enough)</label><input id="s_opAddress" data-s="opAddress"></div>
         <div class="f"><label for="s_opContact">Your name and title</label><input id="s_opContact" data-s="opContact" placeholder="Paige Fryer, Owner"></div>
         <div class="f"><label for="s_opPhone">Phone</label><input id="s_opPhone" data-s="opPhone"></div>
@@ -260,7 +261,7 @@
 
   /* ---------- state ---------- */
   var LS='wrapt-documents';
-  var DEFAULT_SETTINGS={opName:'Wrapt',opEntity:'a Tennessee business',opAddress:'Franklin, Tennessee',opContact:'Paige Fryer, Owner',opPhone:'615.948.2976',opEmail:'paige@wraptvending.com',opWeb:'wraptvending.com',installFee:'200'};
+  var DEFAULT_SETTINGS={opName:'Wrapt',opLegal:'Wrapt Intelligence LLC',opEntity:'a Tennessee limited liability company',opAddress:'Franklin, Tennessee',opContact:'Paige Fryer, Owner',opPhone:'615.948.2976',opEmail:'paige@wraptvending.com',opWeb:'wraptvending.com',installFee:'200'};
   var D={settings:{},prospects:[],currentId:null,tab:'proposal'};
   try{var raw=localStorage.getItem(LS);if(raw){var j=JSON.parse(raw);if(j&&j.prospects)D=j;}}catch(e){}
   for(var k in DEFAULT_SETTINGS)if(D.settings[k]==null)D.settings[k]=DEFAULT_SETTINGS[k];
@@ -321,7 +322,7 @@
 '  <section>\n    <h2>The agreement</h2>\n    <div class="note">'+esc(p.approval)+'</div>\n  </section>\n'+
 '  <div class="cta">\n    <div>\n      <h2>Next step</h2>\n      <p>A 10-minute walk of the space is all it takes. I will bring the agreement and we can pick the spot together.</p>\n    </div>\n'+
 '    <a class="btn" href="tel:'+esc((SET.opPhone||'').replace(/[^\d+]/g,''))+'">Call or text '+esc(firstName(SET.opContact))+' · '+esc(SET.opPhone)+'</a>\n  </div>\n'+
-'  <footer>\n    <div><b>'+esc((SET.opContact||'').split(',')[0])+'</b><br>'+esc(((SET.opContact||'').split(',')[1]||'').trim())+(SET.opContact&&SET.opContact.indexOf(',')>0?', ':'')+esc(SET.opName)+' · '+esc(SET.opAddress)+'</div>\n'+
+'  <footer>\n    <div><b>'+esc((SET.opContact||'').split(',')[0])+'</b><br>'+esc(((SET.opContact||'').split(',')[1]||'').trim())+(SET.opContact&&SET.opContact.indexOf(',')>0?', ':'')+esc(SET.opLegal||SET.opName)+' · '+esc(SET.opAddress)+'</div>\n'+
 '    <div style="text-align:right"><a href="tel:'+esc((SET.opPhone||'').replace(/[^\d+]/g,''))+'">'+esc(SET.opPhone)+'</a><br><a href="mailto:'+esc(SET.opEmail)+'">'+esc(SET.opEmail)+'</a><br><a href="https://'+esc(SET.opWeb)+'">'+esc(SET.opWeb)+'</a></div>\n'+
 '  </footer>\n</div>\n</body>\n</html>\n';
   }
@@ -332,13 +333,13 @@
   function inject(tpl,state){var json=JSON.stringify(state).replace(/</g,'\\u003c');return tpl.replace(STATE_RE,function(){return '<script id="wrapt-state" type="application/json">'+json+'<\/script>';});}
   function agreementHTML(p){
     return inject(TPL_AGREEMENT,{v:1,id:uid('wa'),stage:'draft',updatedAt:'',fields:{
-      opName:SET.opName,opEntity:SET.opEntity,opAddress:SET.opAddress,opContact:SET.opContact,opPhone:SET.opPhone,opEmail:SET.opEmail,opWeb:SET.opWeb,
+      opName:SET.opName,opLegal:SET.opLegal,opEntity:SET.opEntity,opAddress:SET.opAddress,opContact:SET.opContact,opPhone:SET.opPhone,opEmail:SET.opEmail,opWeb:SET.opWeb,
       effectiveDate:p.effectiveDate||'',hostCompany:p.company||'',hostAddress:p.address||'',hostContact:p.contact||'',hostTitle:p.title||'',hostPhone:p.phone||'',hostEmail:p.email||'',
       coolers:p.coolers||'1',commission:p.commission||'',termYears:p.termYears||'3',wrap:p.wrap||'no',wrapFee:p.wrapFee||'',extraTerms:p.extraTerms||''},sigOp:null,sigHost:null});
   }
   function payoutHTML(p){
     return inject(TPL_PAYOUT,{v:1,id:uid('wp'),stage:'draft',updatedAt:'',fields:{
-      opName:SET.opName,opAddress:SET.opAddress,opContact:SET.opContact,opPhone:SET.opPhone,opEmail:SET.opEmail,opWeb:SET.opWeb,
+      opName:SET.opName,opLegal:SET.opLegal,opAddress:SET.opAddress,opContact:SET.opContact,opPhone:SET.opPhone,opEmail:SET.opEmail,opWeb:SET.opWeb,
       hostCompany:p.company||'',hostContact:p.contact||'',hostEmail:p.email||'',
       payeeName:'',payeeDba:'',payeeType:'business',method:'deposit',addr1:'',addr2:'',stmtName:'',stmtEmail:'',stmtPhone:'',qbEmail:'',notes:'',subName:'',subTitle:'',subDate:''}});
   }
@@ -498,7 +499,7 @@
     var me=firstName(SET.opContact);
     var body='Hi '+firstName(p.contact)+',\n\nThanks for taking the call from our team. As promised, the proposal for '+(p.company||'your location')+' is attached.\n\n'+
       'In short: we place an AI smart cooler at no cost, install it, stock it and service it every week. '+capFirst(shortOf(p))+' earns a share of every sale after a 90-day trial, paid monthly with a statement.\n\n'+
-      p.spot+'\n\n'+p.approval+'\n\nCan I stop by this week for a 10-minute look at the space?\n\n'+SET.opContact+'\n'+SET.opName+'\n'+SET.opPhone+' · '+SET.opWeb;
+      p.spot+'\n\n'+p.approval+'\n\nCan I stop by this week for a 10-minute look at the space?\n\n'+SET.opContact+'\n'+(SET.opLegal||SET.opName)+'\n'+SET.opPhone+' · '+SET.opWeb;
     var subject='Proposal: a free smart cooler for '+(p.company||'your location');
     try{var a=document.createElement('a');a.href='mailto:'+encodeURIComponent(p.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},1000);}catch(e){}
     showMail(p.email,subject,body,name);

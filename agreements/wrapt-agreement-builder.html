@@ -132,7 +132,7 @@
 </head>
 <body>
 
-<script id="wrapt-state" type="application/json">{"v":1,"id":"","stage":"draft","updatedAt":"","fields":{"opName":"Wrapt","opEntity":"a Tennessee business","opAddress":"Franklin, Tennessee","opContact":"Paige Fryer, Owner","opPhone":"615.948.2976","opEmail":"paige@wraptvending.com","opWeb":"wraptvending.com","effectiveDate":"","hostCompany":"","hostAddress":"","hostContact":"","hostTitle":"","hostPhone":"","hostEmail":"","coolers":"1","commission":"","termYears":"3","wrap":"no","wrapFee":"","extraTerms":""},"sigOp":null,"sigHost":null}</script>
+<script id="wrapt-state" type="application/json">{"v":1,"id":"","stage":"draft","updatedAt":"","fields":{"opName":"Wrapt","opLegal":"Wrapt Intelligence LLC","opEntity":"a Tennessee limited liability company","opAddress":"Franklin, Tennessee","opContact":"Paige Fryer, Owner","opPhone":"615.948.2976","opEmail":"paige@wraptvending.com","opWeb":"wraptvending.com","effectiveDate":"","hostCompany":"","hostAddress":"","hostContact":"","hostTitle":"","hostPhone":"","hostEmail":"","coolers":"1","commission":"","termYears":"3","wrap":"no","wrapFee":"","extraTerms":""},"sigOp":null,"sigHost":null}</script>
 
 <div class="bar" role="toolbar" aria-label="Agreement actions">
   <span class="t">Wrapt Agreement Builder</span>
@@ -162,7 +162,8 @@
 
   <div class="parties">
     <div class="party"><b>Operator</b>
-      <div><input class="f" data-k="opName" aria-label="Operator business name" style="width:12ch">, <input class="f" data-k="opEntity" aria-label="Operator entity type" style="width:20ch"></div>
+      <div><input class="f" data-k="opLegal" aria-label="Operator legal name" style="width:22ch">, <input class="f" data-k="opEntity" aria-label="Operator entity type" style="width:34ch"></div>
+      <div><label>Doing business as:</label><input class="f" data-k="opName" aria-label="Operator brand name" style="width:10ch"></div>
       <div><label>Address:</label><input class="f" data-k="opAddress" aria-label="Operator address" style="width:22ch"></div>
       <div><input class="f" data-k="opContact" aria-label="Operator contact and title" style="width:18ch"> · <input class="f" data-k="opPhone" aria-label="Operator phone" style="width:13ch"></div>
       <div><label>Email:</label><input class="f" type="email" data-k="opEmail" placeholder="your email for signed copies" aria-label="Operator email" style="width:24ch"></div>
@@ -238,7 +239,7 @@
 
   <div class="sig">
     <div class="col" id="colOp">
-      <b class="h">Operator · <span data-show="opName">Wrapt</span></b>
+      <b class="h">Operator · <span data-show="opLegal">Wrapt Intelligence LLC</span></b>
       <div class="pad" id="padOp"><canvas></canvas><span class="x">Draw your signature here</span></div>
       <div class="tools">
         <input type="text" id="typeOp" placeholder="or type your name to sign" aria-label="Type operator signature">
@@ -292,7 +293,7 @@
     if(cached){var c=JSON.parse(cached);if(c&&c.updatedAt&&(!S.updatedAt||c.updatedAt>S.updatedAt))S=c;}
   }catch(e){}
 
-  var F=S.fields;
+  var F=S.fields;var _def=JSON.parse(stateEl.textContent).fields;for(var _k in _def)if(F[_k]==null)F[_k]=_def[_k];
   var fields=$$('[data-k]');
   var shows=$$('[data-show]');
 
@@ -517,7 +518,7 @@
     var body='Hi '+(F.hostContact?F.hostContact.split(' ')[0]:'there')+',\n\n'+
       'Attached is our Smart Cooler Placement Agreement for '+F.hostCompany+'.\n\n'+
       'To sign it:\n1. Open the attached file in any web browser.\n2. Draw or type your signature in the Host block on page 2 and click "Apply signature".\n3. Click "Sign and return" and attach the downloaded file to your reply.\n\n'+
-      'Questions? Call or text me at '+F.opPhone+'.\n\n'+F.opContact+'\n'+F.opName+'\n'+F.opPhone+(F.opWeb?' · '+F.opWeb:'');
+      'Questions? Call or text me at '+F.opPhone+'.\n\n'+F.opContact+'\n'+(F.opLegal||F.opName)+'\n'+F.opPhone+(F.opWeb?' · '+F.opWeb:'');
     mail(F.hostEmail,F.opName+' placement agreement for '+F.hostCompany,body);
     $('#banner').insertAdjacentHTML('afterbegin','<b style="color:var(--ok)">Downloaded '+esc(name)+'. Attach it to the email that just opened.</b>');
   });
