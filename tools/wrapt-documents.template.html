@@ -130,7 +130,8 @@
         <div class="f"><label for="s_opPhone">Phone</label><input id="s_opPhone" data-s="opPhone"></div>
         <div class="f"><label for="s_opEmail">Email</label><input id="s_opEmail" data-s="opEmail" type="email"></div>
         <div class="f"><label for="s_opWeb">Website</label><input id="s_opWeb" data-s="opWeb"></div>
-        <div class="f w2"><label for="s_installFee">Wrap installation fee ($)</label><input id="s_installFee" data-s="installFee" type="number" min="0" step="1"><span class="hint">Shown in proposals. The agreement text states $200; change both if this changes.</span></div>
+        <div class="f"><label for="s_commission">Standard commission (% of net sales)</label><input id="s_commission" data-s="commission" type="number" min="0" max="100" step="0.5"></div>
+        <div class="f"><label for="s_installFee">Wrap installation fee ($)</label><input id="s_installFee" data-s="installFee" type="number" min="0" step="1"><span class="hint">Shown in proposals. The agreement text states $200; change both if this changes.</span></div>
       </div>
     </div>
 
@@ -204,7 +205,7 @@
           <div class="grid">
             <div class="f"><label for="p_effectiveDate">Effective date</label><input id="p_effectiveDate" data-p="effectiveDate" type="date"></div>
             <div class="f"><label for="p_coolers">Number of coolers</label><input id="p_coolers" data-p="coolers" type="number" min="1" max="20"></div>
-            <div class="f"><label for="p_commission">Commission %</label><input id="p_commission" data-p="commission" type="number" min="0" max="100" step="0.5" placeholder="agreed on walkthrough"></div>
+            <div class="f"><label for="p_commission">Commission %</label><input id="p_commission" data-p="commission" type="number" min="0" max="100" step="0.5" placeholder="10"></div>
             <div class="f"><label for="p_termYears">Initial term</label><select id="p_termYears" data-p="termYears"><option value="3">3 years</option><option value="4">4 years</option><option value="5">5 years</option></select></div>
             <div class="f"><label for="p_wrap">Custom wrap</label><select id="p_wrap" data-p="wrap"><option value="no">No</option><option value="yes">Yes</option></select></div>
             <div class="f"><label for="p_wrapFee">Wrap cost ($)</label><input id="p_wrapFee" data-p="wrapFee" type="number" min="0" step="1"></div>
@@ -251,13 +252,13 @@
 
   /* ---------- state ---------- */
   var LS='wrapt-documents';
-  var DEFAULT_SETTINGS={opName:'Wrapt',opLegal:'Wrapt Intelligence LLC',opEntity:'a Tennessee limited liability company',opAddress:'Franklin, Tennessee',opContact:'Paige Fryer, Owner',opPhone:'615.948.2976',opEmail:'paige@wraptvending.com',opWeb:'wraptvending.com',installFee:'200'};
+  var DEFAULT_SETTINGS={opName:'Wrapt',opLegal:'Wrapt Intelligence LLC',opEntity:'a Tennessee limited liability company',opAddress:'Franklin, Tennessee',opContact:'Paige Fryer, Owner',opPhone:'615.948.2976',opEmail:'paige@wraptvending.com',opWeb:'wraptvending.com',installFee:'200',commission:'10'};
   var D={settings:{},prospects:[],currentId:null,tab:'proposal'};
   try{var raw=localStorage.getItem(LS);if(raw){var j=JSON.parse(raw);if(j&&j.prospects)D=j;}}catch(e){}
   for(var k in DEFAULT_SETTINGS)if(D.settings[k]==null)D.settings[k]=DEFAULT_SETTINGS[k];
   var SET=D.settings;
   function cur(){for(var i=0;i<D.prospects.length;i++)if(D.prospects[i].id===D.currentId)return D.prospects[i];return null;}
-  function blankProspect(){var v='Gym & fitness',d=VENUES[v];return {id:uid('p'),company:'',short:'',venue:v,contact:'',title:'',email:'',phone:'',address:'',notes:'',who:d.who,lead:d.lead,mix:d.mix,spot:d.spot,approval:d.approval,pdate:today(),effectiveDate:'',coolers:'1',commission:'',termYears:'3',wrap:'no',wrapFee:'',extraTerms:'',createdAt:new Date().toISOString()};}
+  function blankProspect(){var v='Gym & fitness',d=VENUES[v];return {id:uid('p'),company:'',short:'',venue:v,contact:'',title:'',email:'',phone:'',address:'',notes:'',who:d.who,lead:d.lead,mix:d.mix,spot:d.spot,approval:d.approval,pdate:today(),effectiveDate:'',coolers:'1',commission:(SET.commission||'10'),termYears:'3',wrap:'no',wrapFee:'',extraTerms:'',createdAt:new Date().toISOString()};}
   var saveT;
   function save(){D.settings=SET;try{localStorage.setItem(LS,JSON.stringify(D));}catch(e){}var s=$('#saved');s.textContent='Saved';clearTimeout(saveT);saveT=setTimeout(function(){s.textContent='';},1200);}
   function toast(m,ok){var el=$('#msg');el.textContent=m;el.hidden=false;el.className='msg'+(ok?' ok':'');clearTimeout(toast.t);toast.t=setTimeout(function(){el.hidden=true;},6000);}
@@ -276,7 +277,7 @@
     return inject(TPL_AGREEMENT,{v:1,id:uid('wa'),stage:'draft',updatedAt:'',fields:{
       opName:SET.opName,opLegal:SET.opLegal,opEntity:SET.opEntity,opAddress:SET.opAddress,opContact:SET.opContact,opPhone:SET.opPhone,opEmail:SET.opEmail,opWeb:SET.opWeb,
       effectiveDate:p.effectiveDate||'',hostCompany:p.company||'',hostAddress:p.address||'',hostContact:p.contact||'',hostTitle:p.title||'',hostPhone:p.phone||'',hostEmail:p.email||'',
-      coolers:p.coolers||'1',commission:p.commission||'',termYears:p.termYears||'3',wrap:p.wrap||'no',wrapFee:p.wrapFee||'',extraTerms:p.extraTerms||''},sigOp:null,sigHost:null});
+      coolers:p.coolers||'1',commission:p.commission||SET.commission||'10',termYears:p.termYears||'3',wrap:p.wrap||'no',wrapFee:p.wrapFee||'',extraTerms:p.extraTerms||''},sigOp:null,sigHost:null});
   }
   function payoutHTML(p){
     return inject(TPL_PAYOUT,{v:1,id:uid('wp'),stage:'draft',updatedAt:'',fields:{
@@ -439,7 +440,7 @@
     var name=download(SET.opName+'-Proposal-'+slug(p.company)+'.html',proposalHTML(p));
     var me=firstName(SET.opContact);
     var body='Hi '+firstName(p.contact)+',\n\nThanks for taking the call from our team. As promised, the proposal for '+(p.company||'your location')+' is attached.\n\n'+
-      'In short: we place an AI smart cooler at no cost, install it, stock it and service it every week. '+capFirst(shortOf(p))+' earns a share of every sale after a 90-day trial, paid monthly with a statement.\n\n'+
+      'In short: we place an AI smart cooler at no cost, install it, stock it and service it every week. '+capFirst(shortOf(p))+' keeps '+(p.commission||SET.commission||'10')+'% of net sales after a 90-day trial, paid monthly with a statement.\n\n'+
       p.spot+'\n\n'+p.approval+'\n\nCan I stop by this week for a 10-minute look at the space?\n\n'+SET.opContact+'\n'+(SET.opLegal||SET.opName)+'\n'+SET.opPhone+' · '+SET.opWeb;
     var subject='Proposal: a free smart cooler for '+(p.company||'your location');
     try{var a=document.createElement('a');a.href='mailto:'+encodeURIComponent(p.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},1000);}catch(e){}

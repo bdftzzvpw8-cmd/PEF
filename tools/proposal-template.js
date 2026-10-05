@@ -73,7 +73,7 @@
 
   function proposalHTML(p, SET) {
     var co = p.company || 'your location', short = (p.short || p.company || 'your location').trim(), fee = SET.installFee || '200';
-    var brand = SET.opName || 'Wrapt', legal = SET.opLegal || brand, me = firstName(SET.opContact);
+    var brand = SET.opName || 'Wrapt', legal = SET.opLegal || brand, me = firstName(SET.opContact), rate = String(p.commission || SET.commission || '10').replace(/%$/, '');
     var contactName = (SET.opContact || '').split(',')[0].trim(), contactTitle = ((SET.opContact || '').split(',')[1] || '').trim();
     return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
       '<title>' + esc(brand) + ' Proposal for ' + esc(co) + '</title>\n<link rel="stylesheet" href="' + FONTS + '">\n<style>\n' + CSS + '\n</style>\n</head>\n<body>\n<div class="sheet">\n' +
@@ -83,7 +83,7 @@
       '  <section>\n    <div class="idx k">02 · How it works</div>\n    <div class="steps">\n' +
       '      <div class="step"><div class="n k">01</div><h3>Placed free</h3><p>We deliver and set up the cooler at no cost. You choose the spot, we handle the rest.</p></div>\n' +
       '      <div class="step"><div class="n k">02</div><h3>Stocked and serviced</h3><p>Every week. Your team never restocks, never handles cash, never fields a refund.</p></div>\n' +
-      '      <div class="step"><div class="n k">03</div><h3>You earn a share</h3><p>' + esc(capFirst(short)) + ' earns a share of every sale after a 90-day trial, paid monthly with a statement.</p></div>\n' +
+      '      <div class="step"><div class="n k">03</div><h3>You earn ' + esc(rate) + '%</h3><p>' + esc(capFirst(short)) + ' keeps ' + esc(rate) + '% of net sales after a 90-day trial, paid monthly with a statement.</p></div>\n' +
       '    </div>\n  </section>\n' +
       '  <section>\n    <div class="idx k">03 · What ' + esc(short) + ' gets</div>\n    <div class="split">\n      <div>\n        <ul>\n' +
       '          <li>The cooler, installed by us, at no cost.</li>\n' +
@@ -92,7 +92,7 @@
       '          <li>Tap-to-pay checkout. No cash, no coins, no lines.</li>\n' +
       '          <li>Optional custom wrap in your branding, so the cooler looks like part of ' + esc(short) + '. We front the wrap and a $' + esc(fee) + ' install fee and recover them from your commission before payouts begin.</li>\n' +
       '        </ul>\n      </div>\n      <div>\n' +
-      '        <div class="big"><span class="pct">A share of every sale</span><span>Paid monthly with a statement, starting after a 90-day trial period. Commission is paid for each month the cooler sells $1,000 or more. We agree the rate together on the walkthrough.</span></div>\n' +
+      '        <div class="big"><span class="pct">' + esc(rate) + '% of net sales</span><span>Net sales are after processing fees. Paid monthly with a statement, starting after a 90-day trial period, for each month the cooler sells $1,000 or more.</span></div>\n' +
       '        <h2>What we need</h2>\n        <p class="need">' + esc(p.spot) + '</p>\n      </div>\n    </div>\n  </section>\n' +
       '  <section>\n    <div class="idx k">04 · The agreement</div>\n    <div class="note">' + esc(p.approval) + '</div>\n  </section>\n' +
       '  <div class="cta">\n    <div>\n      <div class="idx k">05 · Next step</div>\n      <p>A 10-minute walk of the space is all it takes. I will bring the agreement and we can pick the spot together.</p>\n    </div>\n' +

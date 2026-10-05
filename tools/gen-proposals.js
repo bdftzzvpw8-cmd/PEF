@@ -3,7 +3,7 @@
 const fs = require('fs'), path = require('path');
 const T = require('./proposal-template.js');
 const OUT = path.join(__dirname, '..', 'proposals');
-const SET = { opName: 'Wrapt', opLegal: 'Wrapt Intelligence LLC', opAddress: 'Franklin, Tennessee', opContact: 'Paige Fryer, Owner', opPhone: '615.948.2976', opEmail: 'paige@wraptvending.com', opWeb: 'wraptvending.com', installFee: '200' };
+const SET = { opName: 'Wrapt', opLegal: 'Wrapt Intelligence LLC', opAddress: 'Franklin, Tennessee', opContact: 'Paige Fryer, Owner', opPhone: '615.948.2976', opEmail: 'paige@wraptvending.com', opWeb: 'wraptvending.com', installFee: '200', commission: '10' };
 const PROSPECTS = [
   { slug: 'legacy-fit', company: 'Legacy Fit', short: 'Legacy Fit', venue: 'Gym & fitness' },
   { slug: 'baymont-franklin', company: 'Baymont by Wyndham Franklin', short: 'the Baymont', venue: 'Hotel' },
