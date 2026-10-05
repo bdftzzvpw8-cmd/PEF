@@ -131,7 +131,7 @@
         <div class="f"><label for="s_opPhone">Phone</label><input id="s_opPhone" data-s="opPhone"></div>
         <div class="f"><label for="s_opEmail">Email</label><input id="s_opEmail" data-s="opEmail" type="email"></div>
         <div class="f"><label for="s_opWeb">Website</label><input id="s_opWeb" data-s="opWeb"></div>
-        <div class="f"><label for="s_commission">Standard commission (% of net sales)</label><input id="s_commission" data-s="commission" type="number" min="0" max="100" step="0.5"></div>
+        <div class="f"><label for="s_commission">Standard commission (% of NGR)</label><input id="s_commission" data-s="commission" type="number" min="0" max="100" step="0.5"></div>
         <div class="f"><label for="s_installFee">Wrap installation fee ($)</label><input id="s_installFee" data-s="installFee" type="number" min="0" step="1"><span class="hint">Shown in proposals. The agreement text states $200; change both if this changes.</span></div>
       </div>
     </div>
@@ -441,7 +441,7 @@
     var name=download(SET.opName+'-Proposal-'+slug(p.company)+'.html',proposalHTML(p));
     var me=firstName(SET.opContact);
     var body='Hi '+firstName(p.contact)+',\n\nThanks for taking the call from our team. As promised, the proposal for '+(p.company||'your location')+' is attached.\n\n'+
-      'In short: we place an AI smart cooler at no cost, install it, stock it and service it every week. '+capFirst(shortOf(p))+' keeps '+(p.commission||SET.commission||'10')+'% of net sales after a 90-day trial, paid monthly with a statement.\n\n'+
+      'In short: we place an AI smart cooler at no cost, install it, stock it and service it every week. '+capFirst(shortOf(p))+' keeps '+(p.commission||SET.commission||'10')+'% of NGR (net gross revenue) after a 90-day trial, paid monthly with a statement.\n\n'+
       p.spot+'\n\n'+p.approval+'\n\nCan I stop by this week for a 10-minute look at the space?\n\n'+SET.opContact+'\n'+(SET.opLegal||SET.opName)+'\n'+SET.opPhone+' · '+SET.opWeb;
     var subject='Proposal: a free smart cooler for '+(p.company||'your location');
     try{var a=document.createElement('a');a.href='mailto:'+encodeURIComponent(p.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},1000);}catch(e){}

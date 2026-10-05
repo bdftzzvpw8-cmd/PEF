@@ -83,7 +83,7 @@
       '  <section>\n    <div class="idx k">02 · How it works</div>\n    <div class="steps">\n' +
       '      <div class="step"><div class="n k">01</div><h3>Placed free</h3><p>We deliver and set up the cooler at no cost. You choose the spot, we handle the rest.</p></div>\n' +
       '      <div class="step"><div class="n k">02</div><h3>Stocked and serviced</h3><p>Every week. Your team never restocks, never handles cash, never fields a refund.</p></div>\n' +
-      '      <div class="step"><div class="n k">03</div><h3>You earn ' + esc(rate) + '%</h3><p>' + esc(capFirst(short)) + ' keeps ' + esc(rate) + '% of net sales after a 90-day trial, paid monthly with a statement.</p></div>\n' +
+      '      <div class="step"><div class="n k">03</div><h3>You earn ' + esc(rate) + '%</h3><p>' + esc(capFirst(short)) + ' keeps ' + esc(rate) + '% of NGR after a 90-day trial, paid monthly with a statement.</p></div>\n' +
       '    </div>\n  </section>\n' +
       '  <section>\n    <div class="idx k">03 · What ' + esc(short) + ' gets</div>\n    <div class="split">\n      <div>\n        <ul>\n' +
       '          <li>The cooler, installed by us, at no cost.</li>\n' +
@@ -92,7 +92,7 @@
       '          <li>Tap-to-pay checkout. No cash, no coins, no lines.</li>\n' +
       '          <li>Optional custom wrap in your branding, so the cooler looks like part of ' + esc(short) + '. We front the wrap and a $' + esc(fee) + ' install fee and recover them from your commission before payouts begin.</li>\n' +
       '        </ul>\n      </div>\n      <div>\n' +
-      '        <div class="big"><span class="pct">' + esc(rate) + '% of net sales</span><span>Net sales are after processing fees. Paid monthly with a statement, starting after a 90-day trial period, for each month the cooler sells $1,000 or more.</span></div>\n' +
+      '        <div class="big"><span class="pct">' + esc(rate) + '% of NGR</span><span>NGR is net gross revenue: sales less tax, refunds, chargebacks and processing fees. Paid monthly with a statement, starting after a 90-day trial period, for each month the cooler sells $1,000 or more.</span></div>\n' +
       '        <h2>What we need</h2>\n        <p class="need">' + esc(p.spot) + '</p>\n      </div>\n    </div>\n  </section>\n' +
       '  <section>\n    <div class="idx k">04 · The agreement</div>\n    <div class="note">' + esc(p.approval) + '</div>\n  </section>\n' +
       '  <div class="cta">\n    <div>\n      <div class="idx k">05 · Next step</div>\n      <p>A 10-minute walk of the space is all it takes. I will bring the agreement and we can pick the spot together.</p>\n    </div>\n' +
