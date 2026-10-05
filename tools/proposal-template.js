@@ -76,7 +76,7 @@
     var brand = SET.opName || 'Wrapt', legal = SET.opLegal || brand, me = firstName(SET.opContact), rate = String(p.commission || SET.commission || '10').replace(/%$/, '');
     var contactName = (SET.opContact || '').split(',')[0].trim(), contactTitle = ((SET.opContact || '').split(',')[1] || '').trim();
     return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-      '<title>' + esc(brand) + ' Proposal for ' + esc(co) + '</title>\n<link rel="stylesheet" href="' + FONTS + '">\n<style>\n' + CSS + '\n</style>\n</head>\n<body>\n<div class="sheet">\n' +
+      '<title>' + esc(brand) + ' Proposal for ' + esc(co) + '</title>\n<link rel="stylesheet" href="' + FONTS + '" media="print" onload="this.media=\'all\'">\n<noscript><link rel="stylesheet" href="' + FONTS + '"></noscript>\n<style>\n' + CSS + '\n</style>\n</head>\n<body>\n<div class="sheet">\n' +
       '  <header>\n    <div class="brand"><span class="wm">' + esc(brand) + '</span><small class="k">Smart coolers · placed free</small></div>\n' +
       '    <div class="meta"><span class="k">Proposal</span><b>Prepared for ' + esc(co) + '</b><span>' + esc(p.venue) + ' · ' + esc(fmtDate(p.pdate || today())) + '</span></div>\n  </header>\n' +
       '  <div class="hero">\n    <div class="idx k">01 · The offer</div>\n    <h1>A smart cooler for ' + esc(co) + ', placed free.</h1>\n    <p>' + esc(p.lead) + '</p>\n  </div>\n' +

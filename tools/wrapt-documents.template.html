@@ -359,7 +359,7 @@
     var propBody=prop.match(/<div class="sheet">[\s\S]*<\/div>\s*<\/body>/)[0].replace(/<\/body>\s*$/,'');
     var agr=staticize(agreementHTML(p),'.agr'),pay=staticize(payoutHTML(p),'.pay');
     return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>'+esc(SET.opName)+' Packet for '+esc(p.company||'Prospect')+'</title>\n'+
-      '<link rel="stylesheet" href="'+T.FONTS+'">\n<style>\n'+propCSS+'\n'+agr.css+'\n'+pay.css+'\n'+PACKET_CSS+'\n</style>\n</head>\n<body>\n'+
+      '<link rel="stylesheet" href="'+T.FONTS+'" media="print" onload="this.media=\'all\'">\n<style>\n'+propCSS+'\n'+agr.css+'\n'+pay.css+'\n'+PACKET_CSS+'\n</style>\n</head>\n<body>\n'+
       '<div class="pdoc proposal">'+propBody+'</div>\n'+
       '<div class="pdoc agr"><div class="doc">'+agr.body+'</div></div>\n'+
       '<div class="pdoc pay"><div class="doc">'+pay.body+'</div></div>\n</body>\n</html>\n';
