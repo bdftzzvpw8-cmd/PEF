@@ -74,18 +74,25 @@ test('throws when no account has anything to rank on', () => {
 });
 
 test('defaults match the agreed rules', () => {
-  assert.strictEqual(DEFAULTS.pool, 2500);
+  assert.strictEqual(DEFAULTS.pool, 2000);
   assert.strictEqual(DEFAULTS.cap, 500);
   assert.strictEqual(DEFAULTS.topPct, 0.20);
   assert.strictEqual(DEFAULTS.minEligible, 10);
   assert.strictEqual(DEFAULTS.basis, 'total_pnl');
+  assert.strictEqual(DEFAULTS.payout, 'Free Play', 'bonuses are not paid in cash');
+});
+
+test('the payout denomination travels with the report', () => {
+  const report = buildBonusReport(playersFrom([500, 400, 300]), { minEligible: 3 });
+  assert.strictEqual(report.payout, 'Free Play');
+  assert.strictEqual(report.config.payout, 'Free Play');
 });
 
 test('reports the shortfall when the cap ceilings payout below the pool', () => {
-  // Four eligible accounts at a $500 cap can absorb $2,000 of the $2,500 pool.
-  const report = buildBonusReport(playersFrom([500, 400, 300, 200]), { minEligible: 4 });
-  assert.strictEqual(report.payoutCeiling, 2000);
-  assert.strictEqual(Math.round(report.totalPaid), 2000);
+  // Three eligible accounts at a $500 cap can absorb $1,500 of the $2,000 pool.
+  const report = buildBonusReport(playersFrom([500, 400, 300]), { minEligible: 3 });
+  assert.strictEqual(report.payoutCeiling, 1500);
+  assert.strictEqual(Math.round(report.totalPaid), 1500);
   assert.strictEqual(Math.round(report.unpaid), 500);
 });
 

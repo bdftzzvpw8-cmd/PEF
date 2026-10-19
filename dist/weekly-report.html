@@ -129,13 +129,13 @@
   <header>
     <span class="header-tag">Weekly Report</span>
     <h1>Bonus <span>&amp;</span> Referrals</h1>
-    <p class="subtitle">Drop the periodic summary and the transaction ledger &middot; everything runs in this page, nothing is uploaded</p>
+    <p class="subtitle">Drop this week's exports &middot; bonuses are awarded as Free Play &middot; everything runs in this page, nothing is uploaded</p>
   </header>
 
   <div class="config-strip">
-    <div class="config-card"><div class="config-label">Prize Pool ($)</div>
-      <input class="config-input" type="number" id="pool" value="2500" min="0"></div>
-    <div class="config-card"><div class="config-label">Per-Account Cap ($)</div>
+    <div class="config-card"><div class="config-label">Prize Pool (Free Play)</div>
+      <input class="config-input" type="number" id="pool" value="2000" min="0"></div>
+    <div class="config-card"><div class="config-label">Per-Account Cap (FP)</div>
       <input class="config-input" type="number" id="cap" value="500" min="0"></div>
     <div class="config-card"><div class="config-label">Top % Eligible</div>
       <input class="config-input" type="number" id="topPct" value="20" min="1" max="100"></div>
@@ -179,7 +179,7 @@
         <th>#</th><th>Account</th><th>Agent</th>
         <th class="num">Volume</th><th class="num">Share</th>
         <th class="num">PreMatch</th><th class="num">InPlay</th>
-        <th class="num">Net P&amp;L</th><th class="num">Bonus</th><th>Referred by</th>
+        <th class="num">Net P&amp;L</th><th class="num">Bonus (FP)</th><th>Referred by</th>
       </tr></thead>
       <tbody id="bonus-body"></tbody>
     </table></div>
@@ -1184,7 +1184,11 @@ const PEF = (function () {
     };
     
     const DEFAULTS = {
-      pool:       2500,       // total prize pool, in dollars
+      pool:       2000,       // total prize pool
+      // Bonuses are awarded as Free Play, not cash. The arithmetic is the same, so
+      // this only labels the output — but it has to be unmistakable, since the
+      // figures otherwise read as dollars owed.
+      payout:     'Free Play',
       cap:         500,       // most any single account can receive
       topPct:     0.20,       // share of qualifying accounts that are eligible
       minEligible: 10,        // hard floor: always at least this many, if available
@@ -1264,6 +1268,7 @@ const PEF = (function () {
     
       return {
         config, metric,
+        payout: config.payout,
         all, active, inactive, eligible, ineligible,
         awards,
         eligibleCount,
@@ -1921,7 +1926,7 @@ function render(report, merged) {
       <div class="kpi-sub">cutoff ${money(bonus.threshold)}</div></div>
     <div class="kpi"><div class="kpi-label">Total Volume</div><div class="kpi-value purple">${money(bonus.totalWeight)}</div>
       <div class="kpi-sub">net ${money(bonus.netPnl)}</div></div>
-    <div class="kpi"><div class="kpi-label">Bonus Paid</div><div class="kpi-value gold">${money(bonus.totalPaid)}</div>
+    <div class="kpi"><div class="kpi-label">Free Play Awarded</div><div class="kpi-value gold">${money(bonus.totalPaid)}</div>
       ${bonus.unpaid > 0.01 ? `<div class="kpi-sub red">${money(bonus.unpaid)} unpayable</div>` : ''}</div>
     <div class="kpi"><div class="kpi-label">Commission</div>
       <div class="kpi-value ${referral.totalCommission > 0 ? 'green' : ''}">${money(referral.totalCommission)}</div>

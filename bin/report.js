@@ -65,14 +65,15 @@ function renderBonus(report, { accounts, week, exclusionLine, showReferrer }) {
   console.log(exclusionLine);
   console.log(`${accounts.size} accounts · ${report.active.length} qualifying `
     + `· ${report.inactive.length} excluded`);
-  console.log(`Pool ${money(report.config.pool)} · cap ${money(report.config.cap)}/account `
+  const payout = report.config.payout;
+  console.log(`Pool ${money(report.config.pool)} ${payout} · cap ${money(report.config.cap)}/account `
     + `· top ${report.config.topPct * 100}% (floor ${report.config.minEligible})`);
   console.log(`Eligible ${report.eligibleCount} · cutoff ${money(report.threshold)}`);
   console.log(`Total ${money(report.totalWeight)} · net ${money(report.netPnl)}\n`);
 
   const header = ['  #', 'Account'.padEnd(16), 'Agent'.padEnd(12),
     report.metric.label.padStart(12), 'Share'.padStart(8), 'Result'.padStart(11),
-    'Bonus'.padStart(11)];
+    `Bonus (${report.config.payout})`.padStart(18)];
   if (showReferrer) header.push('  Referred by');
   console.log(header.join(' '));
 
@@ -86,7 +87,7 @@ function renderBonus(report, { accounts, week, exclusionLine, showReferrer }) {
       count(account.metricValue).padStart(12),
       (share.toFixed(2) + '%').padStart(8),
       result(account.pnl).padStart(11),
-      money(account.bonus).padStart(11),
+      money(account.bonus).padStart(18),
     ];
     if (showReferrer) row.push('  ' + (account.referredBy || '—'));
     console.log(row.join(' '));
@@ -96,7 +97,7 @@ function renderBonus(report, { accounts, week, exclusionLine, showReferrer }) {
     ? (report.eligibleWeight / report.totalWeight) * 100 : 0;
   console.log(`\nEligible accounts hold ${money(report.eligibleWeight)} of the `
     + `${money(report.totalWeight)} total (${eligibleShare.toFixed(1)}%)`);
-  console.log(`Total paid ${money(report.totalPaid)} of ${money(report.config.pool)}`);
+  console.log(`Total awarded ${money(report.totalPaid)} ${payout} of ${money(report.config.pool)}`);
   if (report.unpaid > 0.01) {
     console.log(`WARNING  ${money(report.unpaid)} undistributed — ${report.eligibleCount} eligible `
       + `account(s) at a ${money(report.config.cap)} cap can absorb at most `
