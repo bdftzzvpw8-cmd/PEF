@@ -176,7 +176,7 @@
     <div class="kpi-strip" id="kpi-strip"></div>
     <div class="table-wrap"><table id="bonus-table">
       <thead><tr>
-        <th>#</th><th>Account</th><th>Agent</th>
+        <th>#</th><th>Account</th>
         <th class="num">Volume</th><th class="num">Share</th>
         <th class="num">PreMatch</th><th class="num">InPlay</th>
         <th class="num">Net P&amp;L</th><th class="num">Bonus (FP)</th><th>Referred by</th>
@@ -1942,7 +1942,6 @@ function render(report, merged) {
     tr.innerHTML = `
       <td class="rank">${i + 1}</td>
       <td>${esc(a.player ?? a.account)}</td>
-      <td><span class="tag">${esc(a.agent || a.group || '—')}</span></td>
       <td class="num">${count(a.metricValue)}</td>
       <td class="num">${share.toFixed(2)}%</td>
       <td class="num">${signed(a.byCategory ? a.byCategory.sports : 0)}</td>
@@ -2015,9 +2014,9 @@ $('copy-json').onclick = async () => {
 $('dl-csv').onclick = () => {
   if (!lastReport) return;
   const bonus = lastReport.bonus;
-  const rows = [['Rank','Account','Agent','Volume','Share %','PreMatch','InPlay','Net P&L','Bonus','Referred by']];
+  const rows = [['Rank','Account','Volume','Share %','PreMatch','InPlay','Net P&L','Bonus','Referred by']];
   bonus.eligible.forEach((a, i) => rows.push([
-    i + 1, a.player ?? a.account, a.agent || a.group || '',
+    i + 1, a.player ?? a.account,
     a.metricValue.toFixed(2),
     (bonus.eligibleWeight > 0 ? (a.metricValue / bonus.eligibleWeight) * 100 : 0).toFixed(2),
     (a.byCategory ? a.byCategory.sports : 0).toFixed(2),

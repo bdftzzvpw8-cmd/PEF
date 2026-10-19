@@ -71,7 +71,7 @@ function renderBonus(report, { accounts, week, exclusionLine, showReferrer }) {
   console.log(`Eligible ${report.eligibleCount} · cutoff ${money(report.threshold)}`);
   console.log(`Total ${money(report.totalWeight)} · net ${money(report.netPnl)}\n`);
 
-  const header = ['  #', 'Account'.padEnd(16), 'Agent'.padEnd(12),
+  const header = ['  #', 'Account'.padEnd(16),
     report.metric.label.padStart(12), 'Share'.padStart(8), 'Result'.padStart(11),
     `Bonus (${report.config.payout})`.padStart(18)];
   if (showReferrer) header.push('  Referred by');
@@ -83,7 +83,6 @@ function renderBonus(report, { accounts, week, exclusionLine, showReferrer }) {
     const row = [
       String(i + 1).padStart(3),
       name(account).padEnd(16),
-      (account.agent || account.group || '—').padEnd(12),
       count(account.metricValue).padStart(12),
       (share.toFixed(2) + '%').padStart(8),
       result(account.pnl).padStart(11),

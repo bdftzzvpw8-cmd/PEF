@@ -62,11 +62,20 @@ test('the page produces the same report as the CLI', skipOpts, async () => {
     const badges = await page.$$eval('.file-row .badge', els => els.map(e => e.textContent.trim()));
     assert.deepStrictEqual(badges.sort(), ['Ledger', 'Periodic']);
 
-    // Same accounts, in the same order, with the same bonuses.
-    const rendered = await page.$$eval('#bonus-body tr', trs => trs.map(tr => {
-      const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim());
-      return { account: cells[1], bonus: cells[8] };
-    }));
+    // Same accounts, in the same order, with the same bonuses. Columns are
+    // located by their heading rather than by position, so adding or removing
+    // one does not quietly compare the wrong cells.
+    const rendered = await page.evaluate(() => {
+      const headings = [...document.querySelectorAll('#bonus-table thead th')]
+        .map(th => th.textContent.trim().toLowerCase());
+      const accountAt = headings.indexOf('account');
+      const bonusAt   = headings.findIndex(h => h.startsWith('bonus'));
+      if (accountAt < 0 || bonusAt < 0) throw new Error('expected Account and Bonus columns');
+      return [...document.querySelectorAll('#bonus-body tr')].map(tr => {
+        const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim());
+        return { account: cells[accountAt], bonus: cells[bonusAt] };
+      });
+    });
     const money = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     assert.strictEqual(rendered.length, expected.bonus.eligible.length);
